@@ -23,4 +23,4 @@ def read_message(id_mess):
                 'message': [message_to_read.serialize()],
             }
 
-            return jsonify(response_object), 202
+            return jsonify(response_object), 200
