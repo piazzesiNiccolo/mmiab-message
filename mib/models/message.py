@@ -8,8 +8,23 @@ db = SQLAlchemy()
 
 class Message(db.Model):
 
+    ## The name of the table that we explicitly set
     __tablename__ = "message"
 
+    # A list of fields to be serialized
+    SERIALIZE_LIST = [
+        'id_message', 
+        'id_sender', 
+        'recipients',
+        'body_message',
+        'img_path',
+        'date_of_send',
+        'is_sent',
+        'is_arrived',
+        'to_filter',
+        'reply_to',
+    ]
+    
     # id_message is the primary key that identify a message
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
