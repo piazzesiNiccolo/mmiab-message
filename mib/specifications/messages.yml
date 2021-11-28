@@ -24,7 +24,7 @@ paths:
       operationId: mib.resources.messages.read_message
       responses:
         200:
-          description: Return the message
+          description: Return the selected message
           content:
             application/json:
               schema:
