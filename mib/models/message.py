@@ -1,10 +1,6 @@
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import backref
-from werkzeug.security import check_password_hash
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
-
-db = SQLAlchemy()
+from mib import db
 
 class Message(db.Model):
 
@@ -54,3 +50,8 @@ class Message(db.Model):
     # constructor of the message object
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)
+
+    def serialize(self):
+        _dict = dict([(k, self.__getattribute__(k)) for k in self.SERIALIZE_LIST])
+        _dict['date_of_send'] = self.date_of_send.strftime('%d/%m/%Y')
+        return _dict
