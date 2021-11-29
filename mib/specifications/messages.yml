@@ -9,7 +9,7 @@ servers:
 
 paths:
 
-  /read_message/{id_mess}:
+  /message/{id_mess}/read/{id_usr}:
     get:
       tags: [Messages]
       parameters:
@@ -20,6 +20,13 @@ paths:
             type: integer
             format: int64
           description: id of the mess
+        - in: path
+          name: id_usr
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the user
       description: Gets the message to read
       operationId: mib.resources.messages.read_message
       responses:
@@ -34,5 +41,7 @@ paths:
                     $ref: '#/components/schemas/User'
         404:
           description: Message not found
+        401:
+          description: User not allow to read the message
         default:
           description: An error occured during retrieving the message
