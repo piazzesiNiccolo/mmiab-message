@@ -1,7 +1,11 @@
+import os
+
 class Config(object):
     DEBUG = False
     TESTING = False
 
+    UPLOAD_FOLDER = os.path.join("/static", "assets")
+    UNSAFE_WORDS_FOLDER = os.path.join("/static", "txt")
 
 class DebugConfig(Config):
     """

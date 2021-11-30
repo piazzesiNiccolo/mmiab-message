@@ -1,10 +1,18 @@
 from mib import db
 from mib.dao.manager import Manager
 from mib.models.message import Message
-from typing import List
 
 class MessageManager(Manager):
 
+    @staticmethod
+    def create_message(message: Message):
+        Manager.create(message=message)
+    
+    @staticmethod
+    def update_message(message: Message):
+        Manager.update(message=message)
+
+    '''
     @staticmethod
     def id_message_exists(id_message):
         """
@@ -19,6 +27,13 @@ class MessageManager(Manager):
             return None
         else:
             return message
+    '''
+
+    @staticmethod
+    def retrieve_by_id(id_: int):
+        Manager.check_none(id=id_)
+        return db.session.query(Message).filter(Message.id_message == id_).first()
+        
 
     @staticmethod
     def get_sended_message_by_id_user(id):
