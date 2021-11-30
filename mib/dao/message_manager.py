@@ -2,18 +2,28 @@ from mib import db
 from mib.dao.manager import Manager
 from mib.models.message import Message
 
+from flask import current_app as app
+
 class MessageManager(Manager):
 
-    @staticmethod
-    def create_message(message: Message):
+    @classmethod
+    def users_endpoint(cls):
+        return app.config['USERS_MS_URL']
+    
+    @classmethod
+    def requests_timeout_seconds(cls):
+        return app.config['REQUESTS_TIMEOUT_SECONDS']
+
+    @classmethod
+    def create_message(cls, message: Message):
         Manager.create(message=message)
     
-    @staticmethod
-    def update_message(message: Message):
+    @classmethod
+    def update_message(cls, message: Message):
         Manager.update(message=message)
 
     '''
-    @staticmethod
+    @classmethod
     def id_message_exists(id_message):
         """
         Checks that the id passed corresponds to a message in the db and returns it, raising an exception
@@ -29,14 +39,14 @@ class MessageManager(Manager):
             return message
     '''
 
-    @staticmethod
-    def retrieve_by_id(id_: int):
+    @classmethod
+    def retrieve_by_id(cls, id_: int):
         Manager.check_none(id=id_)
         return db.session.query(Message).filter(Message.id_message == id_).first()
         
 
-    @staticmethod
-    def get_sended_message_by_id_user(id):
+    @classmethod
+    def get_sent_messages(cls, id):
         """
         Returns the list of sent messages by a specific user.
         """
@@ -48,8 +58,8 @@ class MessageManager(Manager):
         return mess
 
     #TODO add some checks about recipient
-    @staticmethod
-    def user_can_read(user_id: int, message: Message) -> bool:
+    @classmethod
+    def user_can_read(cls, user_id: int, message: Message) -> bool:
         '''
         recipients = [rcp.id_recipient for rcp in message.recipients]
         if message.is_arrived == True:
@@ -58,6 +68,11 @@ class MessageManager(Manager):
         elif user_id != message.id_sender:
             return False
         '''
-        if user_id != message.id_sender:
+        recipients = [rcp.id_recipient for rcp in message.recipients]
+        if message.is_arrived == True:
+            if user_id not in recipients and user_id != message.id_sender:
+                return False
+        elif user_id != message.id_sender:
             return False
+
         return True

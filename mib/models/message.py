@@ -12,9 +12,9 @@ class Message(db.Model):
         'id_message', 
         'id_sender', 
         'recipients',
-        'body_message',
+        'message_body',
         'img_path',
-        'date_of_send',
+        'delivery_date',
         'is_sent',
         'is_arrived',
         'to_filter',
@@ -24,9 +24,9 @@ class Message(db.Model):
     # id_message is the primary key that identify a message
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_sender = db.Column(db.Integer)
-    # recipients = db.relationship(
-    #     "Recipient", back_populates="message", cascade="all, delete-orphan"
-    # )
+    recipients = db.relationship(
+        "Recipient", back_populates="message", cascade="all, delete-orphan"
+    )
     message_body = db.Column(db.Unicode(256))
     img_path = db.Column( db.Unicode(128))  # we store the path of the image in the web server
     delivery_date = db.Column(db.DateTime)
@@ -69,5 +69,6 @@ class Message(db.Model):
 
     def serialize(self):
         _dict = dict([(k, self.__getattribute__(k)) for k in self.SERIALIZE_LIST])
-        _dict['date_of_send'] = self.date_of_send.strftime('%d/%m/%Y')
+        _dict['delivery_date'] = self.delivery_date.strftime('%d/%m/%Y %H:%M')
+        _dict['recipients'] = [ rcp.id_recipient for rcp in self.recipients ]
         return _dict

@@ -8,7 +8,6 @@ servers:
   - url: /
 
 paths:
-
   /message/list/sent/{id_usr}:
     get:
       tags: [ Messages ]
@@ -20,7 +19,7 @@ paths:
             type: integer
             format: int64
           description: id of the user
-      description: Gets the list of sent messages
+      description: Gets the list of sent messages by the user
       operationId: mib.resources.messages.message_list_sent
       responses:
         200:
@@ -30,12 +29,26 @@ paths:
               schema:
                 type: object
                 properties:
-                  user:
-                    $ref: '#/components/schemas/User'
-        401:
-          description: List empty
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: name of the image file
+                        data:
+                          type: string
+                          description: data of the image
+                        type:
+                          type: string
+                          description: type of the image
         default:
-          description: An error occured during retrieving the message
+          description: An error occured while retrieving the message
 
   /message/{id_mess}/read/{id_usr}:
     get:
@@ -65,11 +78,64 @@ paths:
               schema:
                 type: object
                 properties:
-                  user:
-                    $ref: '#/components/schemas/User'
+                  message:
+                    $ref: '#/components/schemas/Message'
+                  image:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: name of the image file
+                      data:
+                        type: string
+                        description: data of the image
+                      type:
+                        type: string
+                        description: type of the image
         404:
           description: Message not found
         401:
           description: User not allow to read the message
         default:
           description: An error occured during retrieving the message
+
+components:
+  schemas:
+    Message:
+      type: object
+      properties:
+        id_message:
+          type: integer
+          description: Message id
+          format: int64
+        id_sender:
+          type: integer
+          description: Sender id
+          format: int64
+        recipients:
+          type: array
+          items:
+            type: integer # TODO edit
+          description: List of recipients for the message
+        message_body:
+          type: string
+          description: Message body
+        delivery_date:
+          type: string
+          description: Delivery date of the message
+        is_sent:
+          type: boolean
+          description: flag set to true if the message has been sent
+        is_arrived:
+          type: boolean
+          description: flag set to true if the message has been delivered
+        to_filter:
+          type: boolean
+          description: flag set to true if the message has unsafe words in its body
+        reply_to:
+          type: integer
+          format: int64
+          description: id of the message this one is a reply for
+
+
+
