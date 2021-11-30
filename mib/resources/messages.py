@@ -33,3 +33,22 @@ def read_message(id_mess,id_usr):
             }
 
             return jsonify(response_object), 200
+
+def message_list_sent(id_usr: int):
+      
+    list_of_messages = MessageManager.get_sended_message_by_id_user(id_usr)
+
+    if (list_of_messages.length() == 0):
+        response_object = {
+                'status': 'failed',
+                'message': 'empty list',
+            }
+
+        return jsonify(response_object), 401
+    else:
+        response_object = {
+                'status': 'success',
+                'messages': [m.serialize() for m in list_of_messages],
+            }
+
+        return jsonify(response_object), 200

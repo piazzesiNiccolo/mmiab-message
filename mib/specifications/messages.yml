@@ -9,6 +9,34 @@ servers:
 
 paths:
 
+  /message/list/sent/{id_usr}:
+    get:
+      tags: [ Messages ]
+      parameters:
+        - in: path
+          name: id_usr
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the user
+      description: Gets the list of sent messages
+      operationId: mib.resources.messages.message_list_sent
+      responses:
+        200:
+          description: Return the list of sent messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        401:
+          description: List empty
+        default:
+          description: An error occured during retrieving the message
+
   /message/{id_mess}/read/{id_usr}:
     get:
       tags: [Messages]

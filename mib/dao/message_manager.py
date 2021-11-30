@@ -20,6 +20,18 @@ class MessageManager(Manager):
         else:
             return message
 
+    @staticmethod
+    def get_sended_message_by_id_user(id):
+        """
+        Returns the list of sent messages by a specific user.
+        """
+        mess = (
+            db.session.query(Message)
+            .filter(Message.id_sender == id, Message.is_sent == True)
+            .all()
+        )
+        return mess
+
     #TODO add some checks about recipient
     @staticmethod
     def user_can_read(user_id: int, message: Message) -> bool:
