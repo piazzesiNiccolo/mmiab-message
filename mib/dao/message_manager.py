@@ -1,6 +1,8 @@
 import requests
 from typing import List
 from mib import db
+import requests
+import abort
 from sqlalchemy import and_
 from mib.dao.manager import Manager
 from mib.models.message import Message
@@ -63,6 +65,18 @@ class MessageManager(Manager):
         return mess
 
     @classmethod
+    def get_user_content_filter(cls,id_usr):
+        try:
+            url = "%s/user/filter_value/%s" % (cls.users_endpoint(),str(id_usr))
+            response = requests.get(url, timeout=cls.requests_timeout_seconds())
+            code = response.status_code
+            obj = response.json()['toggle']
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            return abort(500)
+
+        return code,obj
+
+    @classmethod
     def get_received_messages(cls, id):
         '''
             Returns the list of sent messages by a specific user.
@@ -88,14 +102,10 @@ class MessageManager(Manager):
                 )
             )
         )
-        '''if (
-            db.session.query(User)
-            .filter(User.id == id, User.content_filter == True)
-            .count()
-            > 0
-        ):
+        code, toggle = MessageManager.get_user_content_filter(id)
+        if ( toggle == True):
             mess = mess.filter(Message.to_filter == False)
-        mess = mess.join(User, Message.id_sender == User.id).all()
+        mess = mess.join(Message.id_sender == id).all()
         opened_dict = {
             m.Message.id_message: next(
                 (
@@ -106,7 +116,7 @@ class MessageManager(Manager):
                 True,
             )
             for m in mess
-        }'''
+        }
 
         return mess, opened_dict
 
