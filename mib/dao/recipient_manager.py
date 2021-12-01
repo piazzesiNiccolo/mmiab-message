@@ -42,7 +42,7 @@ class RecipientManager:
         return False
 
     @classmethod
-    def recipient_can_delete(cls, message: Message, id_recipient: int) -> bool:
+    def can_delete_read(cls, message: Message, id_recipient: int) -> bool:
         return (
             message.is_arrived == True and
             cls.is_recipient(message, id_recipient)
