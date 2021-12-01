@@ -129,7 +129,7 @@ def message_list_sent(id_usr: int):
 
 def message_list_received(id_usr: int):
       
-    list_of_messages = MessageManager.get_sent_messages(id_usr)
+    list_of_messages = MessageManager.get_received_messages(id_usr)
 
     messages_dicts = [m.serialize() for m in list_of_messages]
     recipients_info = RecipientManager.retrieve_recipients_info(

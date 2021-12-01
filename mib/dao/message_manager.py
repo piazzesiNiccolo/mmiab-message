@@ -106,8 +106,9 @@ class MessageManager(Manager):
         if ( toggle == True):
             mess = mess.filter(Message.to_filter == False)
         mess = mess.join(Message.id_sender == id).all()
+        #TODO check about open to notify 
         opened_dict = {
-            m.Message.id_message: next(
+            '''m.Message.id_message: next(
                 (
                     rcp.has_opened
                     for rcp in m.Message.recipients
@@ -115,7 +116,7 @@ class MessageManager(Manager):
                 ),
                 True,
             )
-            for m in mess
+            for m in mess'''
         }
 
         return mess, opened_dict
@@ -123,14 +124,7 @@ class MessageManager(Manager):
     #TODO add some checks about recipient
     @classmethod
     def user_can_read(cls, user_id: int, message: Message) -> bool:
-        '''
-        recipients = [rcp.id_recipient for rcp in message.recipients]
-        if message.is_arrived == True:
-            if user_id not in recipients and user_id != message.id_sender:
-                return False
-        elif user_id != message.id_sender:
-            return False
-        '''
+        
         recipients = [rcp.id_recipient for rcp in message.recipients]
         if message.is_arrived == True:
             if user_id not in recipients and user_id != message.id_sender:
