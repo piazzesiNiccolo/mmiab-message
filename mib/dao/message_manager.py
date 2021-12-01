@@ -108,7 +108,7 @@ class MessageManager(Manager):
         mess = mess.join(Message.id_sender == id).all()
         #TODO check about open to notify 
         opened_dict = {
-            '''m.Message.id_message: next(
+            m.Message.id_message: next(
                 (
                     rcp.has_opened
                     for rcp in m.Message.recipients
@@ -116,7 +116,7 @@ class MessageManager(Manager):
                 ),
                 True,
             )
-            for m in mess'''
+            for m in mess
         }
 
         return mess, opened_dict
