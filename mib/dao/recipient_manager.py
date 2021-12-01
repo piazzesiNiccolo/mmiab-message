@@ -60,41 +60,6 @@ class RecipientManager:
         ]
         db.session.commit()
 
-    @classmethod
-    def retrieve_recipients_info(cls, id_sender: int, id_list: List[int] = None, deep_list: List[List[int]] = None) -> dict:
-
-        if deep_list is not None:
-            # The following single line of code is equal to:
-            #
-            #     _multi_list = []
-            #     for rcp_list in deep_list:
-            #         for _id in rcp_list:
-            #             _multi_list.append(_id)
-            #
-            # but much faster.
-            _multi_list = [_id for rcp_list in deep_list for _id in rcp_list]
-            id_list = list(set(_multi_list))
-
-        if id_list is None or len(id_list) == 0:
-            return {}
-
-        endpoint = f"{cls.users_endpoint()}/recipients/{id_sender}?ids={id_list}"
-        try:
-            response = requests.get(endpoint, timeout=cls.requests_timeout_seconds())
-            if response.status_code == 200:
-                recipients = response.json()['recipients']
-                formatted_rcp = {}
-                for rcp in recipients:
-                    if rcp['id'] not in formatted_rcp:
-                        _id = rcp['id']
-                        del rcp['id']
-                        formatted_rcp[_id] = rcp
-                return formatted_rcp
-            else:
-                return {}
-
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-            return {}
 
 
 

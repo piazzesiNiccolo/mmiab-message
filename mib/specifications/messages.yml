@@ -36,7 +36,7 @@ paths:
                   recipients:
                     type: object
                     additionalProperties:
-                      $ref: '#/components/schemas/Recipient'
+                      $ref: '#/components/schemas/User'
                   images:
                     type: array
                     items:
@@ -144,7 +144,7 @@ components:
           format: int64
           description: id of the message this one is a reply for
 
-    Recipient:
+    User:
       type: object
       properties:
         first_name:
