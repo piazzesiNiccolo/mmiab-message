@@ -74,6 +74,38 @@ def update_draft(id_message, id_sender):
     }
     return jsonify(response_object), 201
 
+def delete_read_message(id_message, id_recipient):
+    message = MessageManager.retrieve_by_id(id_message)
+    if message is None:
+        response_object = {
+            'status': 'failed',
+            'message': 'Message not found',
+        }
+        return jsonify(response_object), 404
+    elif not RecipientManager.recipient_can_delete(message, id_recipient):
+        response_object = {
+            'status': 'failed',
+            'message': 'User not allowed to delete this message',
+        }
+        return jsonify(response_object), 403
+    elif not RecipientManager.delete_read_message(message, id_recipient):
+        response_object = {
+            'status': 'failed',
+            'message': 'You cannot delete an unread message',
+        }
+        return jsonify(response_object), 400
+    else:
+        response_object = {
+            'status': 'success',
+            'message': 'Message successfully deleted',
+        }
+        return jsonify(response_object), 200
+
+
+
+
+
+
 # TODO: add notification
 def read_message(id_mess, id_usr):
     '''

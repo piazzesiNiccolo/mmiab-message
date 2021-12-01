@@ -9,6 +9,13 @@ import requests
 class RecipientManager:
 
     @classmethod
+    def retrieve_recipient_by_id(cls, message: Message, id_recipient: int) -> Recipient:
+        return next(
+            rcp for rcp in message.recipients if rcp.id_recipient == id_recipient,
+            None
+        )
+
+    @classmethod
     def get_recipients(cls, message: Message) -> List[int]:
         if message is None:
             return []
@@ -31,6 +38,24 @@ class RecipientManager:
                 rcp.has_opened = True
                 db.session.commit()
                 return flag
+
+        return False
+
+    @classmethod
+    def recipient_can_delete(cls, message: Message, id_recipient: int) -> bool:
+        return (
+            message.is_arrived == True and
+            cls.is_recipient(message, id_recipient)
+        )
+
+    @classmethod
+    def delete_read_message(cls, message: Message, id_recipient: int) -> bool:
+        rcp = cls.retrieve_recipient_by_id(message, id_recipient)
+        if rcp is not None:
+            if rcp.has_opened == True:
+                rcp.read_deleted = True
+                db.session.commit()
+                return True
 
         return False
 
