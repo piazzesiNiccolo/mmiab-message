@@ -88,7 +88,6 @@ def read_message(id_mess, id_usr):
         }
         return jsonify(response_object),404
 
-    # TODO: check in user_can_read controls about recipients
     if (MessageManager.user_can_read(id_usr,message_to_read) == False):
         response_object = {
             'status': "failed",
@@ -98,10 +97,14 @@ def read_message(id_mess, id_usr):
 
     else:
         message_dict = message_to_read.serialize()
-        # TODO: get recipients infos
+        recipients_info = RecipientManager.retrieve_recipients_info(
+            id_usr,
+            id_list=message_to_read.recipients
+        )
         response_object = {
             'status': 'success',
             'message': message_dict,
+            'recipients': recipients_info,
             'image': Utils.load_message_image(message_to_read),
         }
 
@@ -112,11 +115,15 @@ def message_list_sent(id_usr: int):
     list_of_messages = MessageManager.get_sent_messages(id_usr)
 
     messages_dicts = [m.serialize() for m in list_of_messages]
-    # TODO get recipients infos
+    recipients_info = RecipientManager.retrieve_recipients_info(
+        id_usr,
+        deep_list=[m.recipients for m in list_of_messages],
+    )
     message_images = [Utils.load_message_image(m) for m in list_of_messages]
     response_object = {
         'status': 'success',
         'messages': messages_dicts,
+        'recipients': recipients_info,
         'images': message_images,
     }
 
