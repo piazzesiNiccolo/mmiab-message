@@ -111,16 +111,16 @@ def read_message(id_mess, id_usr):
     '''
     Return the message to read if exists
     '''
-    message_to_read = MessageManager.retrieve_by_id(id_mess)
+    message = MessageManager.retrieve_by_id(id_mess)
 
-    if (message_to_read == None):
+    if (message == None):
         response_object = {
             'status': "failed",
             "message":"Message not found"
         }
         return jsonify(response_object),404
 
-    if (MessageManager.user_can_read(id_usr,message_to_read) == False):
+    if (MessageManager.user_can_read(id_usr,message) == False):
         response_object = {
             'status': "failed",
             "message":"User not allowed to read the message"
@@ -128,18 +128,16 @@ def read_message(id_mess, id_usr):
         return jsonify(response_object),401
 
     else:
-        message_dict = message_to_read.serialize()
-        recipients_info = RecipientManager.retrieve_recipients_info(
-            id_usr,
-            id_list=message_to_read.recipients
+        message_dict = message.serialize()
+        users_info = MessageManager.retrieve_users_info(
+            id_list=RecipientManager.get_recipients(message) + [message.id_sender]
         )
         response_object = {
             'status': 'success',
             'message': message_dict,
-            'recipients': recipients_info,
-            'image': Utils.load_message_image(message_to_read),
+            'users': users_info,
+            'image': Utils.load_message_image(message),
         }
-
         return jsonify(response_object), 200
 
 def message_list_sent(id_usr: int):
@@ -147,9 +145,9 @@ def message_list_sent(id_usr: int):
     list_of_messages = MessageManager.get_sent_messages(id_usr)
 
     messages_dicts = [m.serialize() for m in list_of_messages]
-    recipients_info = RecipientManager.retrieve_recipients_info(
-        id_usr,
-        deep_list=[m.recipients for m in list_of_messages],
+    recipients_info = MessageManager.retrieve_users_info(
+        id_list=[m.id_sender for m in list_of_messages],
+        deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
     )
     message_images = [Utils.load_message_image(m) for m in list_of_messages]
     response_object = {

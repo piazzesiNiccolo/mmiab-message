@@ -1,3 +1,5 @@
+import requests
+from typing import List
 from mib import db
 from mib.dao.manager import Manager
 from mib.models.message import Message
@@ -76,3 +78,42 @@ class MessageManager(Manager):
             return False
 
         return True
+
+
+    @classmethod
+    def retrieve_users_info(cls, id_list: List[int] = [], deep_list: List[List[int]] = []) -> dict:
+
+        # The following single line of code is equal to:
+        #
+        #     _multi_list = []
+        #     for rcp_list in deep_list:
+        #         for _id in rcp_list:
+        #             _multi_list.append(_id)
+        #
+        # but much faster.
+        _multi_list = [_id for user_list in deep_list for _id in user_list]
+        id_list.extend(_multi_list)
+        id_list = list(set(id_list))
+
+        if len(id_list) == 0:
+            return {}
+
+        endpoint = f"{cls.users_endpoint()}/users/display_info/?ids={id_list}"
+        try:
+            response = requests.get(endpoint, timeout=cls.requests_timeout_seconds())
+            if response.status_code == 200:
+                recipients = response.json()['recipients']
+                formatted_rcp = {}
+                for rcp in recipients:
+                    if rcp['id'] not in formatted_rcp:
+                        _id = rcp['id']
+                        del rcp['id']
+                        formatted_rcp[_id] = rcp
+                return formatted_rcp
+            else:
+                return {}
+
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            return {}
+
+
