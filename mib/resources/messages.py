@@ -31,6 +31,7 @@ def draft():
     response_object = {
         'status': 'success',
         'message': 'Draft successfully created',
+        'id_message': message.id_message,
     }
     return jsonify(response_object), 201
 

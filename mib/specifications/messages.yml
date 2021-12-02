@@ -22,6 +22,15 @@ paths:
       responses:
         201:
           description: New draft created
+          content: 
+            application/json:
+              schema:
+                type: object
+                parameters:
+                  id_message:
+                    type: integer
+                    format: int64
+                    description: the id of the created message
         default:
           description: An error occurred while creating a new draft
 
