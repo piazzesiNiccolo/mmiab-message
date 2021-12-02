@@ -144,3 +144,15 @@ def message_list_draft(id_usr: int):
     }
 
     return jsonify(response_object), 200
+
+def message_timeline_daily_sent(id_usr: int, year: int, month: int, day: int ):
+
+    list_of_messages = MessageManager.get_messages_timeline_year_sent(id_usr, year, month, day )
+    messages_dicts = [m.serialize() for m in list_of_messages]
+
+    response_object = {
+        'status': 'success',
+        'messages': messages_dicts,
+    }
+
+    return jsonify(response_object), 200

@@ -1,3 +1,4 @@
+import datetime
 import requests
 from typing import List
 from mib import db
@@ -93,6 +94,25 @@ class MessageManager(Manager):
             return False
 
         return True
+
+    @classmethod
+    def get_messages_timeline_year_sent(id_usr: int, year: int, month: int, day: int ):
+        """
+        Returns a list of sent messages scheduled for a specific day.
+        """
+        start_of_today = datetime(year, month, day)
+        start_of_tomorrow = start_of_today + datetime.timedelta(days=1)
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.id_sender == id,
+                Message.is_sent == True,
+                Message.date_of_send >= start_of_today,
+                Message.date_of_send < start_of_tomorrow,
+            )
+            .all()
+        )
+        return result
 
 
     @classmethod
