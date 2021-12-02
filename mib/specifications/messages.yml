@@ -8,6 +8,232 @@ servers:
   - url: /
 
 paths:
+  /draft:
+    post:
+      tags: [ Messages ]
+      description: Creates a new draft
+      operationId: mib.resources.messages.draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Draft'
+      responses:
+        201:
+          description: New draft created
+        default:
+          description: An error occurred while creating a new draft
+
+  /draft/{id_message}/{id_sender}:
+    put:
+      tags: [ Messages ]
+      parameters:
+        - in: path
+          name: id_message
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the message to update
+        - in: path
+          name: id_sender
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the user requesting the operation
+      description: Updates an existing draft
+      operationId: mib.resources.messages.update_draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Draft'
+      responses:
+        201:
+          description: Draft updated
+        default:
+          description: An error occurred while updating the draft
+    delete:
+      tags: [ Messages ]
+      parameters:
+        - in: path
+          name: id_message
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the message to delete
+        - in: path
+          name: id_sender
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the user requesting the operation
+      description: Deletes an existing draft
+      operationId: mib.resources.messages.delete_draft
+      responses:
+        200:
+          description: Draft deleted
+        404:
+          description: Message not found
+        403:
+          description: User not allowed to delete the draft
+        400:
+          description: Sent messages cannot be deleted
+        default:
+          description: An error occurred while updating the draft
+
+  /message/{id_message}/{id_user}:
+    get:
+      tags: [Messages]
+      parameters:
+        - in: path
+          name: id_message
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the mess
+        - in: path
+          name: id_user
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the user
+      description: Gets the message to read
+      operationId: mib.resources.messages.read_message
+      responses:
+        200:
+          description: Return the selected message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    $ref: '#/components/schemas/Message'
+                  recipients:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/Recipient'
+                  image:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: name of the image file
+                      data:
+                        type: string
+                        description: data of the image
+                      type:
+                        type: string
+                        description: type of the image
+        404:
+          description: Message not found
+        401:
+          description: User not allow to read the message
+        default:
+          description: An error occured during retrieving the message
+    delete:
+      tags: [Messages]
+      parameters:
+        - in: path
+          name: id_message
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the message
+        - in: path
+          name: id_user
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the recipient requesting the operation
+      description: Deletes a read message for a specific recipient
+      operationId: mib.resources.messages.delete_read_message
+      responses:
+        200:
+          description: Read message deleted for the recipient
+        404:
+          description: Message not found
+        403:
+          description: User not allowed to delete the message
+        400:
+          description: An unread message cannot be deleted
+        default:
+          description: An error occure while deleting the message
+
+  /message/send/{id_message}/{id_user}:
+    post:
+      tags: [ Messages ]
+      parameters:
+        - in: path
+          name: id_message
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the message
+        - in: path
+          name: id_user
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the sender requesting the operation
+      description: Sends a message
+      operationId: mib.resources.messages.send_message
+      responses:
+        200:
+          description: Message sent
+        404:
+          description: Message not found
+        403:
+          description: User not allowed to send the message
+        400:
+          description: Message is already sent or required data are missing
+        default:
+          description: An error occured while sending the message
+
+  /message/withdraw/{id_message}/{id_user}:
+    post:
+      tags: [ Messages ]
+      parameters:
+        - in: path
+          name: id_message
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the message
+        - in: path
+          name: id_user
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the sender requesting the operation
+      description: Withdraws a sent message
+      operationId: mib.resources.messages.withdraw_message
+      responses:
+        200:
+          description: Message withdrawn
+        404:
+          description: Message not found
+        403:
+          description: User not allowed to withdraw the message
+        400:
+          description: Message is already delivered or not enough lottery points
+        default:
+          description: An error occured while withdrawing the message
+
   /message/list/sent/{id_usr}:
     get:
       tags: [ Messages ]
@@ -54,59 +280,6 @@ paths:
         default:
           description: An error occured while retrieving the message
 
-  /message/{id_mess}/read/{id_usr}:
-    get:
-      tags: [Messages]
-      parameters:
-        - in: path
-          name: id_mess
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: id of the mess
-        - in: path
-          name: id_usr
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: id of the user
-      description: Gets the message to read
-      operationId: mib.resources.messages.read_message
-      responses:
-        200:
-          description: Return the selected message
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    $ref: '#/components/schemas/Message'
-                  recipients:
-                    type: object
-                    additionalProperties:
-                      $ref: '#/components/schemas/Recipient'
-                  image:
-                    type: object
-                    properties:
-                      name:
-                        type: string
-                        description: name of the image file
-                      data:
-                        type: string
-                        description: data of the image
-                      type:
-                        type: string
-                        description: type of the image
-        404:
-          description: Message not found
-        401:
-          description: User not allow to read the message
-        default:
-          description: An error occured during retrieving the message
-
 components:
   schemas:
     Message:
@@ -143,7 +316,34 @@ components:
           type: integer
           format: int64
           description: id of the message this one is a reply for
-
+    Draft:
+      required:
+        - message_body
+      type: object
+      properties:
+        message_body:
+          type: string
+          description: Message body
+        delivery_date:
+          type: string
+          description: Delivery date of the message
+        recipients:
+          type: integer
+          format: int64
+          description: List of recipient ids
+        reply_to:
+          type: integer
+          format: int64
+          description: id of the message this one is a reply for
+        image:
+          type: object
+          properties:
+            name:
+              type: string
+              description: name of the sent image
+            data:
+              type: string
+              description: data of the sent image
     User:
       type: object
       properties:
