@@ -126,3 +126,21 @@ def message_list_sent(id_usr: int):
     }
 
     return jsonify(response_object), 200
+
+def message_list_draft(id_usr: int):
+
+    list_of_messages = MessageManager.get_drafted_messages(id_usr)
+    messages_dicts = [m.serialize() for m in list_of_messages]
+    recipients_info = MessageManager.retrieve_users_info(
+        id_list=[m.id_sender for m in list_of_messages],
+        deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
+    )
+    #message_images = [Utils.load_message_image(m) for m in list_of_messages]
+    response_object = {
+        'status': 'success',
+        'messages': messages_dicts,
+        'recipients': recipients_info,
+        #'images': message_images,
+    }
+
+    return jsonify(response_object), 200

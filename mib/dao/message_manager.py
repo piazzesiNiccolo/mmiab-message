@@ -45,7 +45,22 @@ class MessageManager(Manager):
     def retrieve_by_id(cls, id_: int):
         Manager.check_none(id=id_)
         return db.session.query(Message).filter(Message.id_message == id_).first()
-        
+
+    @classmethod
+    def get_drafted_messages(cls, id):
+        """
+        Returns the list of drafted messages by a specific user.
+        """
+        mess = (
+            db.session.query(Message)
+            .filter(
+                Message.id_sender == id,
+                Message.is_sent == False,
+                Message.is_arrived == False,
+            )
+            .all()
+        )
+        return mess
 
     @classmethod
     def get_sent_messages(cls, id):
