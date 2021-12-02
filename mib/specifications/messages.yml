@@ -145,6 +145,52 @@ paths:
                           description: type of the image
         default:
           description: An error occured while retrieving the message
+  
+  /message/list/received/{id_usr}:
+    get:
+      tags: [ Messages ]
+      parameters:
+        - in: path
+          name: id_usr
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the user
+      description: Gets the list of received messages by the user
+      operationId: mib.resources.messages.message_list_received
+      responses:
+        200:
+          description: Return the list of received messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                  recipients:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/Recipient'
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: name of the image file
+                        data:
+                          type: string
+                          description: data of the image
+                        type:
+                          type: string
+                          description: type of the image
+        default:
+          description: An error occured while retrieving the message
 
   /message/{id_mess}/read/{id_usr}:
     get:
