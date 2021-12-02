@@ -12,13 +12,27 @@ paths:
     get:
       tags: [ Messages ]
       parameters:
-        - in: path
-          name: id_usr
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: id of the user
+        - name: id_usr
+        in: path
+        description: User's unique identifier
+        required: true
+        schema:
+          type: integer
+      - name: y
+        in: query
+        description: year identifier
+        schema:
+          type: integer
+      - name: m
+        in: query
+        description: month identifier
+        schema:
+          type: integer
+      - name: d
+        in: query
+        description: day identifier
+        schema:
+          type: integer
       description: Gets the list of sent messages by the user
       operationId: mib.resources.messages.message_list_sent
       responses:

@@ -63,18 +63,6 @@ class MessageManager(Manager):
         )
         return mess
 
-    @classmethod
-    def get_sent_messages(cls, id):
-        """
-        Returns the list of sent messages by a specific user.
-        """
-        mess = (
-            db.session.query(Message)
-            .filter(Message.id_sender == id, Message.is_sent == True)
-            .all()
-        )
-        return mess
-
     #TODO add some checks about recipient
     @classmethod
     def user_can_read(cls, user_id: int, message: Message) -> bool:
@@ -96,23 +84,24 @@ class MessageManager(Manager):
         return True
 
     @classmethod
-    def get_messages_timeline_year_sent(id_usr: int, year: int, month: int, day: int ):
+    def get_sent_messages(id, today_dt):
         """
-        Returns a list of sent messages scheduled for a specific day.
+        Returns the list of sent messages by a specific user.
         """
-        start_of_today = datetime(year, month, day)
-        start_of_tomorrow = start_of_today + datetime.timedelta(days=1)
-        result = (
+        query = (
             db.session.query(Message)
-            .filter(
+            .filter(Message.id_sender == id, Message.is_sent == True)
+        )
+        if today_dt is not None:
+            start_of_today = datetime(today_dt.year, today_dt.month, today_dt.day)
+            start_of_tomorrow = start_of_today + datetime.timedelta(days=1)
+            query.filter(
                 Message.id_sender == id,
                 Message.is_sent == True,
                 Message.date_of_send >= start_of_today,
                 Message.date_of_send < start_of_tomorrow,
             )
-            .all()
-        )
-        return result
+        return query.all()
 
 
     @classmethod
