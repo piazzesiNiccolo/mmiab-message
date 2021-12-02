@@ -1,7 +1,7 @@
 from mib import db
 
 
-class Manager(object):
+class Manager(object):#pragma: no cover
 
     db_session = db.session
 

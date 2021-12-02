@@ -144,12 +144,13 @@ def send_message(id_message, id_sender):
 def withdraw_message(id_message, id_sender):
     message = MessageManager.retrieve_by_id(id_message)
     analysis = [
-        (lambda: message is None                                        , 'Message not found'                              , 404),
-        (lambda: message.id_sender != id_sender                         , 'User not allowed to withdraw the message'       , 403),
-        (lambda: message.is_arrived == True                             , 'You cannot withdraw a delivered message'        , 400),
+        (lambda: message is None               , 'Message not found'                              , 404),
+        (lambda: message.id_sender != id_sender, 'User not allowed to withdraw the message'       , 403),
+        (lambda: message.is_arrived == True    , 'You cannot withdraw a delivered message'        , 400),
         # TODO: check lottery points
-        (lambda: False                                                  , "You don't have enough lottery points"           , 400),
-        (lambda: not MessageManager.withdraw_message(message, id_sender), 'An error occurred while withdrawing the message', 500),
+        (lambda: False                         , "You don't have enough lottery points"           , 400),
+        # TODO; send to ms user request to decrease lottery points
+        (lambda: False                         , 'An error occurred while withdrawing the message', 500),
     ]
     for fail, message, code in analysis:
         if fail():
@@ -159,6 +160,7 @@ def withdraw_message(id_message, id_sender):
             }
             return jsonify(response_object), code
 
+    MessageManager.withdraw_message(message)
     response_object = {
         'status': 'success',
         'message': 'Message succesfully withdrawn',

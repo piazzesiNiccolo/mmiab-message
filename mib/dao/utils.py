@@ -22,7 +22,7 @@ class Utils:
 
     @staticmethod
     def load_message_image(message: Message) -> dict:
-        file_name = message.msg_img
+        file_name = message.img_path
         file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], file_name)
         try:
             with open(file_path, 'rb') as file:
