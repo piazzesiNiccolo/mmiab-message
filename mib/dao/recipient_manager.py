@@ -11,7 +11,7 @@ class RecipientManager:
     @classmethod
     def retrieve_recipient_by_id(cls, message: Message, id_recipient: int) -> Recipient:
         return next(
-            rcp for rcp in message.recipients if rcp.id_recipient == id_recipient,
+            (rcp for rcp in message.recipients if rcp.id_recipient == id_recipient),
             None
         )
 

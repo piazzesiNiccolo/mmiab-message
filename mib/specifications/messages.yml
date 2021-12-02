@@ -26,7 +26,7 @@ paths:
             application/json:
               schema:
                 type: object
-                parameters:
+                properties:
                   id_message:
                     type: integer
                     format: int64
@@ -129,7 +129,7 @@ paths:
                   recipients:
                     type: object
                     additionalProperties:
-                      $ref: '#/components/schemas/Recipient'
+                      $ref: '#/components/schemas/User'
                   image:
                     type: object
                     properties:
