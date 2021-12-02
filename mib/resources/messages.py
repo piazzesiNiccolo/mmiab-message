@@ -31,6 +31,7 @@ def draft():
     response_object = {
         'status': 'success',
         'message': 'Draft successfully created',
+        'id_message': message.id_message,
     }
     return jsonify(response_object), 201
 
@@ -74,12 +75,102 @@ def update_draft(id_message, id_sender):
     }
     return jsonify(response_object), 201
 
+def delete_read_message(id_message, id_user):
+    message = MessageManager.retrieve_by_id(id_message)
+    analysis = [
+        (lambda: message is None                                           , 'Message not found'                     , 404),
+        (lambda: not RecipientManager.can_delete_read(message, id_user)    , 'User not allowed to delete the message', 403),
+        (lambda: not RecipientManager.delete_read_message(message, id_user), 'You cannot delete an unread message'   , 400),
+    ]
+    for fail, message, code in analysis:
+        if fail():
+            response_object = {
+                'status': 'failed',
+                'message': message,
+            }
+            return jsonify(response_object), code
+
+    response_object = {
+        'status': 'success',
+        'message': 'Message successfully deleted',
+    }
+    return jsonify(response_object), 200
+
+def delete_draft(id_message, id_sender):
+    message = MessageManager.retrieve_by_id(id_message)
+    analysis = [
+        (lambda: message is None                                    , 'Message not found'                      , 404),
+        (lambda: message.id_sender != id_sender                     , 'User not allowed to send the message'   , 403),
+        (lambda: not MessageManager.delete_draft(message, id_sender), 'You cannot delete a sent message'       , 400),
+    ]
+    for fail, message, code in analysis:
+        if fail():
+            response_object = {
+                'status': 'failed',
+                'message': message,
+            }
+            return jsonify(response_object), code
+
+    response_object = {
+        'status': 'success',
+        'message': 'Draft successfully deleted',
+    }
+    return jsonify(response_object), 200
+
+def send_message(id_message, id_sender):
+    message = MessageManager.retrieve_by_id(id_message)
+    analysis = [
+        (lambda: message is None               , 'Message not found'                      , 404),
+        (lambda: message.id_sender != id_sender, 'User not allowed to send the message'   , 403),
+        (lambda: message.is_sent == True       , 'Message already sent'                   , 400),
+        (lambda: message.delivery_date is None , 'You must set a delivery date first'     , 400),
+        (lambda: len(message.recipiets) == 0   , 'You must pick a list of recipients first', 400),
+    ]
+    for fail, message, code in analysis:
+        if fail():
+            response_object = {
+                'status': 'failed',
+                'message': message,
+            }
+            return jsonify(response_object), code
+
+    MessageManager.send_message(id_message)
+    response_object = {
+        'status': 'success',
+        'message': 'Message succesfully sent',
+    }
+    return jsonify(response_object), 200
+
+def withdraw_message(id_message, id_sender):
+    message = MessageManager.retrieve_by_id(id_message)
+    analysis = [
+        (lambda: message is None                                        , 'Message not found'                              , 404),
+        (lambda: message.id_sender != id_sender                         , 'User not allowed to withdraw the message'       , 403),
+        (lambda: message.is_arrived == True                             , 'You cannot withdraw a delivered message'        , 400),
+        # TODO: check lottery points
+        (lambda: False                                                  , "You don't have enough lottery points"           , 400),
+        (lambda: not MessageManager.withdraw_message(message, id_sender), 'An error occurred while withdrawing the message', 500),
+    ]
+    for fail, message, code in analysis:
+        if fail():
+            response_object = {
+                'status': 'failed',
+                'message': message,
+            }
+            return jsonify(response_object), code
+
+    response_object = {
+        'status': 'success',
+        'message': 'Message succesfully withdrawn',
+    }
+    return jsonify(response_object), 200
+
 # TODO: add notification
-def read_message(id_mess, id_usr):
+def read_message(id_message, id_user):
     '''
     Return the message to read if exists
     '''
-    message = MessageManager.retrieve_by_id(id_mess)
+    message = MessageManager.retrieve_by_id(id_message)
 
     if (message == None):
         response_object = {
@@ -88,7 +179,7 @@ def read_message(id_mess, id_usr):
         }
         return jsonify(response_object),404
 
-    if (MessageManager.user_can_read(id_usr,message) == False):
+    if (MessageManager.user_can_read(id_user,message) == False):
         response_object = {
             'status': "failed",
             "message":"User not allowed to read the message"

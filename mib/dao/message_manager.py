@@ -103,6 +103,26 @@ class MessageManager(Manager):
             )
         return query.all()
 
+    def delete_draft(message: Message) -> bool:
+        if message.is_arrived == False and message.is_sent == False:
+            message.recipients = []
+            db.session.delete(message)
+            db.session.commit()
+            return True
+
+        return False
+
+    @classmethod
+    def send_message(message: Message):
+        message.is_sent = True
+        db.session.commit()
+
+    @classmethod
+    def withdraw_message(message: Message, id_sender: int) -> bool:
+        # TODO; send to ms user request to decrease lottery points
+        message.is_sent = False
+        db.session.commit()
+        return True
 
     @classmethod
     def retrieve_users_info(cls, id_list: List[int] = [], deep_list: List[List[int]] = []) -> dict:
