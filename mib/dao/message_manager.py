@@ -1,3 +1,4 @@
+import datetime
 import requests
 from typing import List
 from mib import db
@@ -45,16 +46,19 @@ class MessageManager(Manager):
     def retrieve_by_id(cls, id_: int):
         Manager.check_none(id=id_)
         return db.session.query(Message).filter(Message.id_message == id_).first()
-        
 
     @classmethod
-    def get_sent_messages(cls, id):
+    def get_drafted_messages(cls, id):
         """
-        Returns the list of sent messages by a specific user.
+        Returns the list of drafted messages by a specific user.
         """
         mess = (
             db.session.query(Message)
-            .filter(Message.id_sender == id, Message.is_sent == True)
+            .filter(
+                Message.id_sender == id,
+                Message.is_sent == False,
+                Message.is_arrived == False,
+            )
             .all()
         )
         return mess
@@ -80,6 +84,25 @@ class MessageManager(Manager):
         return True
 
     @classmethod
+    def get_sent_messages(id, today_dt):
+        """
+        Returns the list of sent messages by a specific user.
+        """
+        query = (
+            db.session.query(Message)
+            .filter(Message.id_sender == id, Message.is_sent == True)
+        )
+        if today_dt is not None:
+            start_of_today = datetime(today_dt.year, today_dt.month, today_dt.day)
+            start_of_tomorrow = start_of_today + datetime.timedelta(days=1)
+            query.filter(
+                Message.id_sender == id,
+                Message.is_sent == True,
+                Message.date_of_send >= start_of_today,
+                Message.date_of_send < start_of_tomorrow,
+            )
+        return query.all()
+
     def delete_draft(message: Message) -> bool:
         if message.is_arrived == False and message.is_sent == False:
             message.recipients = []

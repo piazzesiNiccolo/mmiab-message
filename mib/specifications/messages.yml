@@ -94,7 +94,39 @@ paths:
         400:
           description: Sent messages cannot be deleted
         default:
-          description: An error occurred while updating the draft
+          description: An error occured while retrieving the message
+  
+  /message/list/draft/{id_usr}:
+    get:
+      tags: [ Messages ]
+      parameters:
+        - in: path
+          name: id_usr
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the user
+      description: Gets the list of sent messages by the user
+      operationId: mib.resources.messages.message_list_draft
+      responses:
+        200:
+          description: Return the list of drafted messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                  recipients:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/User'
+        default:
+          description: An error occured while retrieving the message
 
   /message/{id_message}/{id_user}:
     get:
@@ -254,6 +286,21 @@ paths:
             type: integer
             format: int64
           description: id of the user
+        - name: y
+          in: query
+          description: year identifier
+          schema:
+            type: integer
+        - name: m
+          in: query
+          description: month identifier
+          schema:
+            type: integer
+        - name: d
+          in: query
+          description: day identifier
+          schema:
+            type: integer
       description: Gets the list of sent messages by the user
       operationId: mib.resources.messages.message_list_sent
       responses:
