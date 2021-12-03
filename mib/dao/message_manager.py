@@ -147,6 +147,26 @@ class MessageManager(Manager):
         return query.all()
 
     @classmethod
+    def get_message_list_sent_monthly(id_usr: int, year:int,month:int):
+
+        """
+        Returns a list of sent messages scheduled for a given month
+        """
+        month_fst = datetime(year, month, 1)
+        next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.is_sent == True,
+                Message.id_sender == id,
+                Message.date_of_send >= month_fst,
+                Message.date_of_send < next_month_fst,
+            )
+            .all()
+        )
+        return result
+
+    @classmethod
     def get_received_messages(id, today_dt):
         """
         Returns the list of received messages by a specific user.
