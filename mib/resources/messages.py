@@ -207,7 +207,7 @@ def message_list_draft(id_usr: int):
     list_of_messages = MessageManager.get_drafted_messages(id_usr)
     messages_dicts = [m.serialize() for m in list_of_messages]
     recipients_info = MessageManager.retrieve_users_info(
-        id_list=[m.id_sender for m in list_of_messages],
+        #id_list=[m.id_sender for m in list_of_messages],
         deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
     )
     response_object = {
@@ -239,22 +239,17 @@ def message_list_sent(id_usr: int):
     month = request.args.get('m',None)
     day = request.args.get('d',None)
 
-    print(year)
-    print(month)
-    print(day)
     try:
         y_i, m_i, d_i = int(year), int(month), int(day)
         today_dt = datetime(y_i, m_i, d_i)
     except (ValueError, TypeError) as e:
-        print(e)
         today_dt = None
       
-    print(today_dt)
     list_of_messages = MessageManager.get_sent_messages(id_usr, today_dt=today_dt)
 
     messages_dicts = [m.serialize() for m in list_of_messages]
     recipients_info = MessageManager.retrieve_users_info(
-        id_list=[m.id_sender for m in list_of_messages],
+        #id_list=[m.id_sender for m in list_of_messages],
         deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
     )
     response_object = {
@@ -273,7 +268,7 @@ def message_list_received(id_usr: int):
 
     try:
         today_dt = datetime(year, month, day)
-    except ValueError:
+    except (ValueError, TypeError):
         today_dt = None
     
     #check open dicts
@@ -282,14 +277,13 @@ def message_list_received(id_usr: int):
     messages_dicts = [m.serialize() for m in list_of_messages]
     recipients_info = MessageManager.retrieve_users_info(
         id_list=[m.id_sender for m in list_of_messages],
-        deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
+        #deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
     )
-    message_images = [Utils.load_message_image(m) for m in list_of_messages]
     response_object = {
         'status': 'success',
         'messages': messages_dicts,
-        'recipients': recipients_info,
-        'images': message_images,
+        'has_opened': open_dict,
+        'senders': recipients_info,
     }
 
     return jsonify(response_object), 200

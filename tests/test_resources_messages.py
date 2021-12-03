@@ -267,6 +267,22 @@ class TestMessages:
             assert len(response.json['messages']) == 2
             assert len(response.json['recipients']) == 2
 
+    def test_message_list_received(self, test_client, received_list):
+        with mock.patch('mib.dao.message_manager.MessageManager.retrieve_users_info') as m:
+            m.return_value = {2: {'test': 'test value'}, 4: {'test': 'test value'}, 5: {'test': 'test value'}}
+            response = test_client.get('/message/list/received/1')
+            assert response.status_code == 200
+            assert len(response.json['messages']) == 3
+            assert len(response.json['senders']) == 3
+        
+    def test_message_list_received_timeline(self, test_client, received_list):
+        with mock.patch('mib.dao.message_manager.MessageManager.retrieve_users_info') as m:
+            m.return_value = {2: {'test': 'test value'}, 4: {'test': 'test value'}, 5: {'test': 'test value'}}
+            response = test_client.get('/message/list/received/1?y=2022&m=10&d=10')
+            assert response.status_code == 200
+            assert len(response.json['messages']) == 3
+            assert len(response.json['senders']) == 3
+
 
         
 

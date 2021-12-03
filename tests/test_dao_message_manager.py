@@ -77,6 +77,43 @@ class TestMessageManager:
         assert all(map(lambda m: m.id_sender == 1 and m.is_sent == True, _messages))
         assert len(_messages) == 2
 
+    @pytest.mark.parametrize('code,data,toggle', [
+        (200,{'toggle': True}, True),
+        (200, {'toggle': False}, False),
+        (404, {}, False),
+    ])
+    def test_get_user_content_filter(self, code, data, toggle):
+        with mock.patch('requests.get') as m:
+            m.return_value=MockResponse(code=code, json=data)
+            _code, _toggle = MessageManager.get_user_content_filter(1)
+            assert _toggle == toggle
+            assert _code == code
+
+    @pytest.mark.parametrize('exception', [
+        requests.exceptions.ConnectionError,
+        requests.exceptions.Timeout,
+    ])
+    def test_get_user_content_filter_error(self, exception):
+        with mock.patch('requests.get') as m:
+            m.side_effect = exception()
+            _code, _toggle = MessageManager.get_user_content_filter(1)
+            assert _toggle == False
+            assert _code == 500
+
+    @pytest.mark.parametrize('dt, cf, nres', [
+        (None, True, 2,),
+        (None, False, 3,),
+        (datetime(2022,10,10), False, 2),
+    ])
+    def test_get_received_messages(self, received_list, dt, cf, nres):
+        print(db.session.query(Message).count())
+        with mock.patch('mib.dao.message_manager.MessageManager.get_user_content_filter') as m:
+            m.return_value = 200, cf
+            _messages, _dict = MessageManager.get_received_messages(1, today_dt=dt)
+            assert all(map(lambda m: 1 in [r.id_recipient for r in m.recipients] and m.is_sent == True and m.is_arrived == True, _messages))
+            assert all(map(lambda v: not v, _dict.values()))
+            assert len(_messages) == nres
+
     @pytest.mark.parametrize("is_sent,is_arrived,id_user,result", [
         (True, True, 1, True),
         (True, True, 2, True),

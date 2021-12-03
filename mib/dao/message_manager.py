@@ -5,9 +5,8 @@ from typing import List
 from mib import db
 from mib.dao.manager import Manager
 from mib.models.message import Message
-from mib.dao.recipient_manager import RecipientManager
+from mib.models.recipient import Recipient
 from sqlalchemy import and_
-import abort
 
 from flask import current_app as app
 
@@ -113,51 +112,51 @@ class MessageManager(Manager):
             url = "%s/user/filter_value/%s" % (cls.users_endpoint(),str(id_usr))
             response = requests.get(url, timeout=cls.requests_timeout_seconds())
             code = response.status_code
-            obj = response.json()['toggle']
+            obj = response.json().get('toggle', False)
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-            return abort(500)
+            return 500, False
 
         return code,obj
 
     @classmethod
-    def get_received_messages(id, today_dt):
+    def get_received_messages(cls, id, today_dt):
         """
         Returns the list of received messages by a specific user.
         """
         #received normale
         query = (
             db.session.query(Message)
-            .filter(Message.is_arrived == True)
             .filter(
+                Message.is_sent == True,
+                Message.is_arrived == True,
+            ).filter(
                 Message.recipients.any(
-                    and_(RecipientManager.id_recipient == id, RecipientManager.read_deleted == False)
+                    and_(Recipient.id_recipient == id, Recipient.read_deleted == False)
                 )
             )
         )
-        code, toggle = MessageManager.get_user_content_filter(id)
+        _, toggle = MessageManager.get_user_content_filter(id)
         if ( toggle == True):
             query = query.filter(Message.to_filter == False)
 
-        query = query.join(Message.id_sender == id).all()
+        # query = query.join(Message.id_sender == id).all()
         #fine received normale
         #timeline
         if today_dt is not None:
             start_of_today = datetime(today_dt.year, today_dt.month, today_dt.day)
-            start_of_tomorrow = start_of_today + datetime.timedelta(days=1)
-            query.filter(
-                Message.is_sent == True,
-                Message.is_arrived == True,
-                Message.date_of_send >= start_of_today,
-                Message.date_of_send < start_of_tomorrow,
+            start_of_tomorrow = start_of_today + timedelta(days=1)
+            query = query.filter(
+                Message.delivery_date >= start_of_today,
+                Message.delivery_date < start_of_tomorrow,
             )
 
         #TODO check it
         # Contains for each message a flag indicating id the specified user has already opened it
         opened_dict = {
-            m.Message.id_message: next(
+            m.id_message: next(
                 (
                     rcp.has_opened
-                    for rcp in m.Message.recipients
+                    for rcp in m.recipients
                     if rcp.id_recipient == id
                 ),
                 True,
