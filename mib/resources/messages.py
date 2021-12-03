@@ -286,3 +286,11 @@ def message_list_received(id_usr: int):
     }
 
     return jsonify(response_object), 200
+
+
+def message_list_received_monthly(id_usr: int, year: int, month: int):
+
+    year = request.args.get('y',None)
+    month = request.args.get('m',None)
+
+    list_of_messages = MessageManager.get_message_list_received_monthly(id_usr,year,month)

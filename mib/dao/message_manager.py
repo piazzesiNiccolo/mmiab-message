@@ -1,9 +1,12 @@
 import datetime
 import requests
+import calendar
+from datetime import timedelta
 from typing import List
 from mib import db
 from mib.dao.manager import Manager
 from mib.models.message import Message
+from mib.models.recipient import Recipient
 from mib.dao.recipient_manager import RecipientManager
 from sqlalchemy import and_
 import abort
@@ -117,6 +120,31 @@ class MessageManager(Manager):
             return abort(500)
 
         return code,obj
+
+    @classmethod
+    def get_message_list_received_monthly(id_usr: int, year:int,month:int):
+
+        month_fst = datetime(year, month, 1)
+        next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
+        query = (
+            db.session.query(Message)
+            .filter(
+                Message.is_sent == True,
+                Message.is_arrived == True,
+                Message.date_of_send >= month_fst,
+                Message.date_of_send < next_month_fst,
+            )
+            .filter(
+                Message.recipients.any(
+                    and_(Recipient.id_recipient == id, Recipient.read_deleted == False)
+                )
+            )
+        )
+        code, toggle = MessageManager.get_user_content_filter(id)
+        if ( toggle == True):
+            query = query.filter(Message.to_filter == False)
+
+        return query.all()
 
     @classmethod
     def get_received_messages(id, today_dt):
