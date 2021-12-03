@@ -6,6 +6,7 @@ from mib.dao.manager import Manager
 from mib.models.message import Message
 from mib.dao.recipient_manager import RecipientManager
 from sqlalchemy import and_
+import abort
 
 from flask import current_app as app
 
@@ -106,6 +107,18 @@ class MessageManager(Manager):
         return query.all()
 
     @classmethod
+    def get_user_content_filter(cls,id_usr):
+        try:
+            url = "%s/user/filter_value/%s" % (cls.users_endpoint(),str(id_usr))
+            response = requests.get(url, timeout=cls.requests_timeout_seconds())
+            code = response.status_code
+            obj = response.json()['toggle']
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            return abort(500)
+
+        return code,obj
+
+    @classmethod
     def get_received_messages(id, today_dt):
         """
         Returns the list of received messages by a specific user.
@@ -120,12 +133,8 @@ class MessageManager(Manager):
                 )
             )
         )
-        if ( #check content filter
-            db.session.query(User)
-            .filter(User.id == id, User.content_filter == True)
-            .count()
-            > 0
-        ):
+        code, toggle = MessageManager.get_user_content_filter(id)
+        if ( toggle == True):
             query = query.filter(Message.to_filter == False)
 
         query = query.join(Message.id_sender == id).all()
