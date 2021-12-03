@@ -15,15 +15,15 @@ def draft():
     message.set_message_body(post_data.get('message_body'))
     try:
         delivery_date = datetime.strptime( 
-            post_data.get('delivery_date'), 
-            post_data.get('delivery_date_format'),
+            post_data.get('delivery_date', None), 
+            '%d/%m/%Y %H:%M',
         )
-    except ValueError:
+    except (ValueError, TypeError):
         delivery_date = None
     message.set_delivery_date(delivery_date)
-    RecipientManager.set_recipients(message, post_data.get('recipients'))
-    message.set_reply_to(post_data.get('reply_to'))
-    file_name = Utils.save_message_image(post_data.get('image'))
+    RecipientManager.set_recipients(message, post_data.get('recipients', []))
+    message.set_reply_to(post_data.get('reply_to', None))
+    file_name = Utils.save_message_image(post_data.get('image', None))
     message.set_img_path(file_name)
     message.set_to_filter(ContentFilter.filter_content(post_data.get('message_body')))
     MessageManager.create_message(message)
@@ -57,14 +57,14 @@ def update_draft(id_message, id_sender):
     message.set_message_body(post_data.get('message_body'))
     try:
         delivery_date = datetime.strptime( 
-            post_data.get('delivery_date'), 
-            post_data.get('delivery_date_format'),
+            post_data.get('delivery_date', None), 
+            '%d/%m/%Y %H:%M',
         )
-    except ValueError:
+    except (ValueError, TypeError):
         delivery_date = None
     message.set_delivery_date(delivery_date)
-    RecipientManager.set_recipients(message, post_data.get('recipients'))
-    file_name = Utils.save_message_image(post_data.get('image'))
+    RecipientManager.set_recipients(message, post_data.get('recipients', []))
+    file_name = Utils.save_message_image(post_data.get('image', None))
     message.set_img_path(file_name)
     message.set_to_filter(ContentFilter.filter_content(post_data.get('message_body')))
     MessageManager.update_message(message)
@@ -239,11 +239,17 @@ def message_list_sent(id_usr: int):
     month = request.args.get('m',None)
     day = request.args.get('d',None)
 
+    print(year)
+    print(month)
+    print(day)
     try:
-        today_dt = datetime(year, month, day)
-    except ValueError:
+        y_i, m_i, d_i = int(year), int(month), int(day)
+        today_dt = datetime(y_i, m_i, d_i)
+    except (ValueError, TypeError) as e:
+        print(e)
         today_dt = None
       
+    print(today_dt)
     list_of_messages = MessageManager.get_sent_messages(id_usr, today_dt=today_dt)
 
     messages_dicts = [m.serialize() for m in list_of_messages]

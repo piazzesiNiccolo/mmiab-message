@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime
+from datetime import timedelta
 import requests
 from typing import List
 from mib import db
@@ -94,12 +95,12 @@ class MessageManager(Manager):
         )
         if today_dt is not None:
             start_of_today = datetime(today_dt.year, today_dt.month, today_dt.day)
-            start_of_tomorrow = start_of_today + datetime.timedelta(days=1)
-            query.filter(
+            start_of_tomorrow = start_of_today + timedelta(days=1)
+            query = query.filter(
                 Message.id_sender == id,
                 Message.is_sent == True,
-                Message.date_of_send >= start_of_today,
-                Message.date_of_send < start_of_tomorrow,
+                Message.delivery_date >= start_of_today,
+                Message.delivery_date < start_of_tomorrow,
             )
         return query.all()
 

@@ -62,9 +62,20 @@ class TestMessageManager:
         _message = MessageManager.retrieve_by_id(1)
         assert _message.id_message == 1
 
-    def test_get_sent_messages(self, messages):
+    def test_get_drafted_messages(self, draft_list):
+        _messages = MessageManager.get_drafted_messages(1)
+        assert all(map(lambda m: m.id_sender == 1 and m.is_sent == False, _messages))
+        assert len(_messages) == 2
+
+    def test_get_sent_messages(self, sent_list):
         _messages = MessageManager.get_sent_messages(1)
         assert all(map(lambda m: m.id_sender == 1 and m.is_sent == True, _messages))
+        assert len(_messages) == 3
+
+    def test_get_sent_messages_filtered(self, sent_list):
+        _messages = MessageManager.get_sent_messages(1, today_dt=datetime(2022, 10, 10))
+        assert all(map(lambda m: m.id_sender == 1 and m.is_sent == True, _messages))
+        assert len(_messages) == 2
 
     @pytest.mark.parametrize("is_sent,is_arrived,id_user,result", [
         (True, True, 1, True),

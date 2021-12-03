@@ -37,7 +37,7 @@ class TestUtils:
         os.remove(fullpath)
 
     def test_save_image_empty(self):
-        assert Utils.save_message_image('') == None
+        assert Utils.save_message_image(None) == None
 
     def test_save_image_ok(self):
         filename = 'test.png'

@@ -33,8 +33,70 @@ def messages():
     db.session.add(message2)
     db.session.commit()
     yield message1, message2
+    message1.recipients = []
     db.session.delete(message1)
+    message2.recipients = []
     db.session.delete(message2)
     db.session.commit()
 
+@pytest.fixture(scope='function')
+def draft_list():
+    message1 = Message(
+        id_sender=1,
+        message_body='test body',
+        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        recipients=[Recipient(id_recipient=2)],
+    )
+    message2 = Message(
+        id_sender=1,
+        message_body='test body 2',
+        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        recipients=[Recipient(id_recipient=4)],
+    )
+    db.session.add(message1)
+    db.session.add(message2)
+    db.session.commit()
+    yield message1, message2
+    message1.recipients = []
+    db.session.delete(message1)
+    message2.recipients = []
+    db.session.delete(message2)
+    db.session.commit()
+
+
+@pytest.fixture(scope='function')
+def sent_list():
+    message1 = Message(
+        id_sender=1,
+        message_body='test body',
+        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        recipients=[Recipient(id_recipient=2)],
+        is_sent = True,
+    )
+    message2 = Message(
+        id_sender=1,
+        message_body='test body 2',
+        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        recipients=[Recipient(id_recipient=4)],
+        is_sent = True,
+    )
+    message3 = Message(
+        id_sender=1,
+        message_body='test body 3',
+        delivery_date=datetime.strptime('09/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        recipients=[Recipient(id_recipient=5)],
+        is_sent = True,
+    )
+    message1.recipients = []
+    db.session.add(message1)
+    message2.recipients = []
+    db.session.add(message2)
+    message3.recipients = []
+    db.session.add(message3)
+    db.session.commit()
+    yield message1, message2, message3
+    db.session.delete(message1)
+    db.session.delete(message2)
+    db.session.delete(message3)
+    db.session.commit()
 
