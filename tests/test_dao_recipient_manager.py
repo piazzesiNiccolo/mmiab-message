@@ -1,4 +1,5 @@
 import pytest
+from mib import db
 from mib.dao.recipient_manager import RecipientManager
 from mib.models.message import Message
 from mib.models.recipient import Recipient
@@ -99,6 +100,22 @@ class TestRecipientManager:
             assert RecipientManager.delete_read_message(_message, id) == result
             if result:
                 assert next(r for r in rcps if r.id_recipient == id).read_deleted == True
+
+    @pytest.mark.parametrize("replying,recipients,check", [
+        (False, [1, 2, 3], [1, 2, 3]),
+        (False, [1, 1, 2, 3], [1, 2, 3]),
+        (False, [], []),
+        (True, [2, 3], [1, 2, 3]),
+        (True, [1, 2, 3], [1, 2, 3]),
+    ])
+    def test_set_recipients_no_reply(self, messages, recipients, check, replying):
+        m1, m2 = messages
+        if replying:
+            m2.reply_to = m1.id_message
+            db.session.commit()
+        RecipientManager.set_recipients(m2, recipients, replying=replying)
+        assert all(map(lambda r: r.id_recipient in check, m2.recipients))
+        assert len(m2.recipients) == len(check)
 
 
 

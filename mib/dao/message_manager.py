@@ -84,7 +84,7 @@ class MessageManager(Manager):
         return True
 
     @classmethod
-    def get_sent_messages(id, today_dt):
+    def get_sent_messages(cls, id, today_dt=None):
         """
         Returns the list of sent messages by a specific user.
         """

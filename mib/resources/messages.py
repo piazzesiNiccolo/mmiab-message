@@ -76,11 +76,11 @@ def update_draft(id_message, id_sender):
     return jsonify(response_object), 201
 
 def delete_read_message(id_message, id_user):
-    message = MessageManager.retrieve_by_id(id_message)
+    msg = MessageManager.retrieve_by_id(id_message)
     analysis = [
-        (lambda: message is None                                           , 'Message not found'                     , 404),
-        (lambda: not RecipientManager.can_delete_read(message, id_user)    , 'User not allowed to delete the message', 403),
-        (lambda: not RecipientManager.delete_read_message(message, id_user), 'You cannot delete an unread message'   , 400),
+        (lambda: msg is None                                           , 'Message not found'                     , 404),
+        (lambda: not RecipientManager.can_delete_read(msg, id_user)    , 'User not allowed to delete the message', 403),
+        (lambda: not RecipientManager.delete_read_message(msg, id_user), 'You cannot delete an unread message'   , 400),
     ]
     for fail, message, code in analysis:
         if fail():
@@ -97,11 +97,11 @@ def delete_read_message(id_message, id_user):
     return jsonify(response_object), 200
 
 def delete_draft(id_message, id_sender):
-    message = MessageManager.retrieve_by_id(id_message)
+    msg = MessageManager.retrieve_by_id(id_message)
     analysis = [
-        (lambda: message is None                                    , 'Message not found'                      , 404),
-        (lambda: message.id_sender != id_sender                     , 'User not allowed to send the message'   , 403),
-        (lambda: not MessageManager.delete_draft(message, id_sender), 'You cannot delete a sent message'       , 400),
+        (lambda: msg is None                         , 'Message not found'                      , 404),
+        (lambda: msg.id_sender != id_sender          , 'User not allowed to send the message'   , 403),
+        (lambda: not MessageManager.delete_draft(msg), 'You cannot delete a sent message'       , 400),
     ]
     for fail, message, code in analysis:
         if fail():
@@ -117,14 +117,14 @@ def delete_draft(id_message, id_sender):
     }
     return jsonify(response_object), 200
 
-def send_message(id_message, id_sender):
-    message = MessageManager.retrieve_by_id(id_message)
+def send_message(id_message, id_user):
+    msg = MessageManager.retrieve_by_id(id_message)
     analysis = [
-        (lambda: message is None               , 'Message not found'                      , 404),
-        (lambda: message.id_sender != id_sender, 'User not allowed to send the message'   , 403),
-        (lambda: message.is_sent == True       , 'Message already sent'                   , 400),
-        (lambda: message.delivery_date is None , 'You must set a delivery date first'     , 400),
-        (lambda: len(message.recipiets) == 0   , 'You must pick a list of recipients first', 400),
+        (lambda: msg is None              , 'Message not found'                       , 404),
+        (lambda: msg.id_sender != id_user , 'User not allowed to send the message'    , 403),
+        (lambda: msg.is_sent == True      , 'Message already sent'                    , 400),
+        (lambda: msg.delivery_date is None, 'You must set a delivery date first'      , 400),
+        (lambda: len(msg.recipients) == 0 , 'You must pick a list of recipients first', 400),
     ]
     for fail, message, code in analysis:
         if fail():
@@ -134,23 +134,24 @@ def send_message(id_message, id_sender):
             }
             return jsonify(response_object), code
 
-    MessageManager.send_message(id_message)
+    MessageManager.send_message(msg)
     response_object = {
         'status': 'success',
         'message': 'Message succesfully sent',
     }
     return jsonify(response_object), 200
 
-def withdraw_message(id_message, id_sender):
-    message = MessageManager.retrieve_by_id(id_message)
+def withdraw_message(id_message, id_user):
+    msg = MessageManager.retrieve_by_id(id_message)
     analysis = [
-        (lambda: message is None               , 'Message not found'                              , 404),
-        (lambda: message.id_sender != id_sender, 'User not allowed to withdraw the message'       , 403),
-        (lambda: message.is_arrived == True    , 'You cannot withdraw a delivered message'        , 400),
+        (lambda: msg is None             , 'Message not found'                              , 404),
+        (lambda: msg.id_sender != id_user, 'User not allowed to withdraw the message'       , 403),
+        (lambda: msg.is_sent == False    , 'You cannot withdraw a draft'                    , 400),
+        (lambda: msg.is_arrived == True  , 'You cannot withdraw a delivered message'        , 400),
         # TODO: check lottery points
-        (lambda: False                         , "You don't have enough lottery points"           , 400),
+        (lambda: False                   , "You don't have enough lottery points"           , 400),
         # TODO; send to ms user request to decrease lottery points
-        (lambda: False                         , 'An error occurred while withdrawing the message', 500),
+        (lambda: False                   , 'An error occurred while withdrawing the message', 500),
     ]
     for fail, message, code in analysis:
         if fail():
@@ -160,7 +161,7 @@ def withdraw_message(id_message, id_sender):
             }
             return jsonify(response_object), code
 
-    MessageManager.withdraw_message(message)
+    MessageManager.withdraw_message(msg)
     response_object = {
         'status': 'success',
         'message': 'Message succesfully withdrawn',
@@ -209,16 +210,15 @@ def message_list_draft(id_usr: int):
         id_list=[m.id_sender for m in list_of_messages],
         deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
     )
-    #message_images = [Utils.load_message_image(m) for m in list_of_messages]
     response_object = {
         'status': 'success',
         'messages': messages_dicts,
         'recipients': recipients_info,
-        #'images': message_images,
     }
 
     return jsonify(response_object), 200
 
+'''
 def message_timeline_daily_sent(id_usr: int, data: datetime ):
 
     year, month, day = data.year, data.month, data.day
@@ -231,6 +231,7 @@ def message_timeline_daily_sent(id_usr: int, data: datetime ):
     }
 
     return jsonify(response_object), 200
+'''
 
 def message_list_sent(id_usr: int):
 
@@ -243,19 +244,17 @@ def message_list_sent(id_usr: int):
     except ValueError:
         today_dt = None
       
-    list_of_messages = MessageManager.get_sent_messages(id_usr, today_dt)
+    list_of_messages = MessageManager.get_sent_messages(id_usr, today_dt=today_dt)
 
     messages_dicts = [m.serialize() for m in list_of_messages]
     recipients_info = MessageManager.retrieve_users_info(
         id_list=[m.id_sender for m in list_of_messages],
         deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
     )
-    message_images = [Utils.load_message_image(m) for m in list_of_messages]
     response_object = {
         'status': 'success',
         'messages': messages_dicts,
         'recipients': recipients_info,
-        'images': message_images,
     }
 
     return jsonify(response_object), 200
