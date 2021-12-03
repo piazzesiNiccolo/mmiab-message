@@ -196,7 +196,8 @@ def read_message(id_message, id_user):
         )
         response_object = {
             'status': 'success',
-            'message': message_dict,
+            'message': 'Message retrieved succesfully',
+            'obj': message_dict,
             'users': users_info,
             'image': Utils.load_message_image(message),
         }
