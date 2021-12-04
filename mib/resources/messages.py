@@ -317,8 +317,8 @@ def message_list_monthly(id_usr: int):
 
     response_object = {
         'status': 'success',
-        'messages_sent': sent,
-        'messages_received': received,
+        'sent': sent,
+        'received': received,
         'year': month_dt.year,
         'month': month_dt.month,
     }

@@ -297,6 +297,6 @@ class TestMessages:
         _json = response.json
         _json['year'] == year
         _json['month'] == month
-        assert sum(_json['messages_sent']) == sent_res
-        assert sum(_json['messages_received']) == rcv_res
+        assert sum(_json['sent']) == sent_res
+        assert sum(_json['received']) == rcv_res
 
