@@ -91,6 +91,14 @@ class MessageManager(Manager):
         return True
 
     @classmethod
+    def get_user_lottery_points(cls, user_id: int) -> int:
+        user_info = cls.retrieve_users_info(id_list=[user_id])
+        info = user_info.get(user_id, None)
+        if info is not None:
+            return info.get('lottery_points', 0)
+        return 0
+
+    @classmethod
     def filter_query_daily(cls, query: Query, day_dt: datetime) -> Query:
         if day_dt is not None:
             start_of_day = datetime(day_dt.year, day_dt.month, day_dt.day)
@@ -107,8 +115,8 @@ class MessageManager(Manager):
             month_fst = datetime(month_dt.year, month_dt.month, 1)
             next_month_fst = month_fst + timedelta(days=calendar.monthrange(month_dt.year, month_dt.month)[1])
             query = query.filter(
-                Message.date_of_send >= month_fst,
-                Message.date_of_send < next_month_fst,
+                Message.delivery_date >= month_fst,
+                Message.delivery_date < next_month_fst,
             )
         return query
 

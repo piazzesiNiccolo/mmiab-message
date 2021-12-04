@@ -205,21 +205,23 @@ class TestMessages:
             db.session.delete(message)
             db.session.commit()
             
-    @pytest.mark.parametrize("message,code", [
-        (None, 404),
-        (Message(id_sender=2), 403),
-        (Message(id_sender=1, is_sent=False), 400),
-        (Message(id_sender=1, is_sent=True, is_arrived=True), 400),
-        # TODO: test check for lottery points
+    @pytest.mark.parametrize("message,lp,code", [
+        (None, 0, 404),
+        (Message(id_sender=2), 0, 403),
+        (Message(id_sender=1, is_sent=False), 0, 400),
+        (Message(id_sender=1, is_sent=True, is_arrived=True), 0, 400),
+        (Message(id_sender=1, is_sent=True, is_arrived=False), 0, 400),
         # TODO: test update lottery points to ms user
-        (Message(id_sender=1, is_sent=True, is_arrived=False), 200),
+        (Message(id_sender=1, is_sent=True, is_arrived=False), 2, 200),
     ])
-    def test_withdraw_message(self, test_client, message, code):
+    def test_withdraw_message(self, test_client, message, lp, code):
         if message is not None:
             db.session.add(message)
             db.session.commit()
-        response = test_client.post('/message/withdraw/1/1')
-        assert response.status_code == code
+        with mock.patch('mib.dao.message_manager.MessageManager.get_user_lottery_points') as m:
+            m.return_value = lp
+            response = test_client.post('/message/withdraw/1/1')
+            assert response.status_code == code
         if message is not None:
             db.session.delete(message)
             db.session.commit()
@@ -251,43 +253,50 @@ class TestMessages:
             assert len(response.json['messages']) == 2
             assert len(response.json['recipients']) == 2
         
-    def test_message_list_sent(self, test_client, sent_list):
+    @pytest.mark.parametrize("retval,uri,res", [
+        ( {2: {'test': 'test value'}, 4: {'test': 'test value'}, 5: {'test': 'test value'}},
+            '',
+            3,),
+        ( {2: {'test': 'test value'}, 4: {'test': 'test value'}},
+            '?y=2022&m=10&d=10',
+            2,),
+    ])
+    def test_message_list_sent(self, test_client, sent_list, retval, uri, res):
         with mock.patch('mib.dao.message_manager.MessageManager.retrieve_users_info') as m:
-            m.return_value = {2: {'test': 'test value'}, 4: {'test': 'test value'}, 5: {'test': 'test value'}}
-            response = test_client.get('/message/list/sent/1')
+            m.return_value = retval
+            response = test_client.get('/message/list/sent/1' + uri)
             assert response.status_code == 200
-            assert len(response.json['messages']) == 3
-            assert len(response.json['recipients']) == 3
+            assert len(response.json['messages']) == res
+            assert len(response.json['recipients']) == res
         
-    def test_message_list_sent_timeline(self, test_client, sent_list):
+    @pytest.mark.parametrize("retval,uri,res", [
+        ( {2: {'test': 'test value'}, 4: {'test': 'test value'}, 5: {'test': 'test value'}},
+            '',
+            3,),
+        ( {2: {'test': 'test value'}, 4: {'test': 'test value'}},
+            '?y=2022&m=10&d=10',
+            2,),
+    ])
+    def test_message_list_received(self, test_client, received_list, retval, uri, res):
         with mock.patch('mib.dao.message_manager.MessageManager.retrieve_users_info') as m:
-            m.return_value = {2: {'test': 'test value'}, 4: {'test': 'test value'}}
-            response = test_client.get('/message/list/sent/1?y=2022&m=10&d=10')
+            m.return_value = retval
+            response = test_client.get('/message/list/received/1' + uri)
             assert response.status_code == 200
-            assert len(response.json['messages']) == 2
-            assert len(response.json['recipients']) == 2
-
-    def test_message_list_received(self, test_client, received_list):
-        with mock.patch('mib.dao.message_manager.MessageManager.retrieve_users_info') as m:
-            m.return_value = {2: {'test': 'test value'}, 4: {'test': 'test value'}, 5: {'test': 'test value'}}
-            response = test_client.get('/message/list/received/1')
-            assert response.status_code == 200
-            assert len(response.json['messages']) == 3
-            assert len(response.json['senders']) == 3
-        
-    def test_message_list_received_timeline(self, test_client, received_list):
-        with mock.patch('mib.dao.message_manager.MessageManager.retrieve_users_info') as m:
-            m.return_value = {2: {'test': 'test value'}, 4: {'test': 'test value'}, 5: {'test': 'test value'}}
-            response = test_client.get('/message/list/received/1?y=2022&m=10&d=10')
-            assert response.status_code == 200
-            assert len(response.json['messages']) == 3
-            assert len(response.json['senders']) == 3
+            assert len(response.json['messages']) == res
+            assert len(response.json['senders']) == res
 
 
-        
-
-                
-            
-
-
+    @pytest.mark.parametrize("uri,year,month,sent_res,rcv_res", [
+        ('?y=2022&m=10', 2022, 10, 2, 3),
+        ('', datetime.today().year, datetime.today().month, 0, 0),
+        ('?y=2022&m=15', datetime.today().year, datetime.today().month, 0, 0),
+    ])
+    def test_message_list_monthly(self, test_client, received_list, sent_list, uri, year, month, sent_res, rcv_res):
+        response = test_client.get('/timeline/list/1' + uri)
+        assert response.status_code == 200
+        _json = response.json
+        _json['year'] == year
+        _json['month'] == month
+        assert sum(_json['messages_sent']) == sent_res
+        assert sum(_json['messages_received']) == rcv_res
 
