@@ -107,7 +107,7 @@ paths:
             type: integer
             format: int64
           description: id of the user
-      description: Gets the list of sent messages by the user
+      description: Gets the list of drafted messages by the user
       operationId: mib.resources.messages.message_list_draft
       responses:
         200:
@@ -547,9 +547,14 @@ components:
           description: id of the message this one is a reply for
     Draft:
       required:
+        - id_sender
         - message_body
       type: object
       properties:
+        id_sender:
+          type: integer
+          format: int64
+          description: identifier of the sender of the draft
         message_body:
           type: string
           description: Message body
@@ -557,8 +562,10 @@ components:
           type: string
           description: Delivery date of the message
         recipients:
-          type: integer
-          format: int64
+          type: array
+          items:
+            type: integer
+            format: int64
           description: List of recipient ids
         reply_to:
           type: integer

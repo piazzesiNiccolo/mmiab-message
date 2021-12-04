@@ -3,15 +3,17 @@ from mib.models.message import Message
 from mib.models.recipient import Recipient
 
 from typing import List
-import requests
 
 
 class RecipientManager:
 
     @classmethod
     def retrieve_recipient_by_id(cls, message: Message, id_recipient: int) -> Recipient:
+        if message is None:
+            return None
+
         return next(
-            rcp for rcp in message.recipients if rcp.id_recipient == id_recipient,
+            (rcp for rcp in message.recipients if rcp.id_recipient == id_recipient),
             None
         )
 
@@ -24,6 +26,9 @@ class RecipientManager:
 
     @classmethod
     def is_recipient(cls, message: Message, id: int) -> bool:
+        if message is None:
+            return False
+
         return id in cls.get_recipients(message)
 
     @classmethod
@@ -32,17 +37,23 @@ class RecipientManager:
         Returns true if the specified recipient has opened the given message
         """
         if message is not None:
-            rcp = next(filter(lambda r: r.id_recipient == id, message.recipients))
-            if rcp is not None:
+            try:
+                rcp = next(filter(lambda r: r.id_recipient == id, message.recipients))
                 flag = rcp.has_opened
                 rcp.has_opened = True
                 db.session.commit()
                 return flag
+            except StopIteration:
+                return False
 
         return False
 
     @classmethod
     def can_delete_read(cls, message: Message, id_recipient: int) -> bool:
+        if message is None:
+            return False
+
+        print(message)
         return (
             message.is_arrived == True and
             cls.is_recipient(message, id_recipient)
@@ -50,6 +61,9 @@ class RecipientManager:
 
     @classmethod
     def delete_read_message(cls, message: Message, id_recipient: int) -> bool:
+        if message is None:
+            return False
+
         rcp = cls.retrieve_recipient_by_id(message, id_recipient)
         if rcp is not None:
             if rcp.has_opened == True:
@@ -66,6 +80,7 @@ class RecipientManager:
         recipients: List[int], 
         replying: bool = False
     ) -> None:
+        # this is done this way to keep the order of recipients
         _recipients = []
         for rcp in recipients:
             if rcp not in _recipients:

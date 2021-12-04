@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime
+from datetime import timedelta
 import requests
 import calendar
 from datetime import timedelta
@@ -9,7 +10,7 @@ from mib.models.message import Message
 from mib.models.recipient import Recipient
 from mib.dao.recipient_manager import RecipientManager
 from sqlalchemy import and_
-import abort
+from sqlalchemy.orm import Query
 
 from flask import current_app as app
 
@@ -90,7 +91,30 @@ class MessageManager(Manager):
         return True
 
     @classmethod
-    def get_sent_messages(id, today_dt):
+    def filter_query_daily(cls, query: Query, day_dt: datetime) -> Query:
+        if day_dt is not None:
+            start_of_day = datetime(day_dt.year, day_dt.month, day_dt.day)
+            start_of_next_day = start_of_day + timedelta(days=1)
+            query = query.filter(
+                Message.delivery_date >= start_of_day,
+                Message.delivery_date < start_of_next_day,
+            )
+        return query
+
+    @classmethod
+    def filter_query_monthly(cls, query: Query, month_dt: datetime) -> Query:
+        if month_dt is not None:
+            month_fst = datetime(month_dt.year, month_dt.month, 1)
+            next_month_fst = month_fst + timedelta(days=calendar.monthrange(month_dt.year, month_dt.month)[1])
+            query = query.filter(
+                Message.date_of_send >= month_fst,
+                Message.date_of_send < next_month_fst,
+            )
+        return query
+
+
+    @classmethod
+    def get_sent_messages(cls, id: int, day_dt: datetime = None, month_dt: datetime = None):
         """
         Returns the list of sent messages by a specific user.
         """
@@ -98,15 +122,11 @@ class MessageManager(Manager):
             db.session.query(Message)
             .filter(Message.id_sender == id, Message.is_sent == True)
         )
-        if today_dt is not None:
-            start_of_today = datetime(today_dt.year, today_dt.month, today_dt.day)
-            start_of_tomorrow = start_of_today + datetime.timedelta(days=1)
-            query.filter(
-                Message.id_sender == id,
-                Message.is_sent == True,
-                Message.date_of_send >= start_of_today,
-                Message.date_of_send < start_of_tomorrow,
-            )
+        if day_dt is not None:
+            query = cls.filter_query_daily(query, day_dt)
+        elif month_dt is not None:
+            query = cls.filter_query_monthly(query, month_dt)
+
         return query.all()
 
     @classmethod
@@ -115,12 +135,13 @@ class MessageManager(Manager):
             url = "%s/user/filter_value/%s" % (cls.users_endpoint(),str(id_usr))
             response = requests.get(url, timeout=cls.requests_timeout_seconds())
             code = response.status_code
-            obj = response.json()['toggle']
+            obj = response.json().get('toggle', False)
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-            return abort(500)
+            return 500, False
 
         return code,obj
 
+    '''
     @classmethod
     def get_message_list_received_monthly(id_usr: int, year:int,month:int):
 
@@ -165,46 +186,44 @@ class MessageManager(Manager):
             .all()
         )
         return result
+    '''
 
     @classmethod
-    def get_received_messages(id, today_dt):
+    def get_received_messages(cls, id: int, day_dt: datetime, month_dt: datetime):
         """
         Returns the list of received messages by a specific user.
         """
         #received normale
         query = (
             db.session.query(Message)
-            .filter(Message.is_arrived == True)
             .filter(
+                Message.is_sent == True,
+                Message.is_arrived == True,
+            ).filter(
                 Message.recipients.any(
-                    and_(RecipientManager.id_recipient == id, RecipientManager.read_deleted == False)
+                    and_(Recipient.id_recipient == id, Recipient.read_deleted == False)
                 )
             )
         )
-        code, toggle = MessageManager.get_user_content_filter(id)
+        _, toggle = MessageManager.get_user_content_filter(id)
         if ( toggle == True):
             query = query.filter(Message.to_filter == False)
 
-        query = query.join(Message.id_sender == id).all()
+        # query = query.join(Message.id_sender == id).all()
         #fine received normale
         #timeline
-        if today_dt is not None:
-            start_of_today = datetime(today_dt.year, today_dt.month, today_dt.day)
-            start_of_tomorrow = start_of_today + datetime.timedelta(days=1)
-            query.filter(
-                Message.is_sent == True,
-                Message.is_arrived == True,
-                Message.date_of_send >= start_of_today,
-                Message.date_of_send < start_of_tomorrow,
-            )
+        if day_dt is not None:
+            query = cls.filter_query_daily(query, day_dt=day_dt)
+        elif month_dt is not None:
+            query = cls.filter_query_monthly(query, month_dt=month_dt)
 
         #TODO check it
         # Contains for each message a flag indicating id the specified user has already opened it
         opened_dict = {
-            m.Message.id_message: next(
+            m.id_message: next(
                 (
                     rcp.has_opened
-                    for rcp in m.Message.recipients
+                    for rcp in m.recipients
                     if rcp.id_recipient == id
                 ),
                 True,
@@ -225,16 +244,14 @@ class MessageManager(Manager):
         return False
 
     @classmethod
-    def send_message(message: Message):
+    def send_message(cls, message: Message):
         message.is_sent = True
         db.session.commit()
 
     @classmethod
-    def withdraw_message(message: Message, id_sender: int) -> bool:
-        # TODO; send to ms user request to decrease lottery points
+    def withdraw_message(cls, message: Message):
         message.is_sent = False
         db.session.commit()
-        return True
 
     @classmethod
     def retrieve_users_info(cls, id_list: List[int] = [], deep_list: List[List[int]] = []) -> dict:
@@ -261,10 +278,9 @@ class MessageManager(Manager):
                 recipients = response.json()['recipients']
                 formatted_rcp = {}
                 for rcp in recipients:
-                    if rcp['id'] not in formatted_rcp:
-                        _id = rcp['id']
-                        del rcp['id']
-                        formatted_rcp[_id] = rcp
+                    _id = rcp['id']
+                    del rcp['id']
+                    formatted_rcp[_id] = rcp
                 return formatted_rcp
             else:
                 return {}

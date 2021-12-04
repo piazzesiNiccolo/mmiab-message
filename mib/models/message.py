@@ -69,6 +69,9 @@ class Message(db.Model):
 
     def serialize(self):
         _dict = dict([(k, self.__getattribute__(k)) for k in self.SERIALIZE_LIST])
-        _dict['delivery_date'] = self.delivery_date.strftime('%d/%m/%Y %H:%M')
+        if self.delivery_date is not None:
+            _dict['delivery_date'] = self.delivery_date.strftime('%d/%m/%Y %H:%M')
+        else:
+            del _dict['delivery_date']
         _dict['recipients'] = [ rcp.id_recipient for rcp in self.recipients ]
         return _dict
