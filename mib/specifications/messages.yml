@@ -340,8 +340,8 @@ paths:
     get:
       tags: [ Messages ]
       parameters:
-        - in: path
-          name: id_usr
+        - name: id_usr
+          in: path
           required: true
           schema:
             type: integer
