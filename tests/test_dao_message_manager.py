@@ -67,15 +67,44 @@ class TestMessageManager:
         assert all(map(lambda m: m.id_sender == 1 and m.is_sent == False, _messages))
         assert len(_messages) == 2
 
-    def test_get_sent_messages(self, sent_list):
-        _messages = MessageManager.get_sent_messages(1)
-        assert all(map(lambda m: m.id_sender == 1 and m.is_sent == True, _messages))
-        assert len(_messages) == 3
+    @pytest.mark.parametrize('retval,res', [
+        ({}, 0),
+        ({1: {}}, 0),
+        ({1: {'lottery_points': 2}}, 2),
+    ])
+    def test_get_user_lottery_points(self, retval, res):
+        with mock.patch('mib.dao.message_manager.MessageManager.retrieve_users_info') as m:
+            m.return_value = retval
+            assert MessageManager.get_user_lottery_points(1) == res
 
-    def test_get_sent_messages_filtered(self, sent_list):
-        _messages = MessageManager.get_sent_messages(1, today_dt=datetime(2022, 10, 10))
+    @pytest.mark.parametrize('date,res', [
+        (datetime(2022,10,10), 2),
+        (None, 5),
+    ])
+    def test_filter_query_daily(self, received_list, date, res):
+        query = db.session.query(Message)
+        query = MessageManager.filter_query_daily(query, day_dt=date)
+        assert query.count() == res
+
+    @pytest.mark.parametrize('date,res', [
+        (datetime(2022,10,10), 4),
+        (None, 5),
+    ])
+    def test_filter_query_monthly(self, received_list, date, res):
+        query = db.session.query(Message)
+        query = MessageManager.filter_query_monthly(query, month_dt=date)
+        assert query.count() == res
+
+    @pytest.mark.parametrize('day_dt, month_dt, nres', [
+        (None, None, 3,),
+        (datetime(2022,10,10), None, 2),
+        (None, datetime(2022,10,1), 2),
+        (datetime(2022,10,10), datetime(2022,10,10), 2),
+    ])
+    def test_get_sent_messages(self, sent_list, day_dt, month_dt, nres):
+        _messages = MessageManager.get_sent_messages(1, day_dt=day_dt, month_dt=month_dt)
         assert all(map(lambda m: m.id_sender == 1 and m.is_sent == True, _messages))
-        assert len(_messages) == 2
+        assert len(_messages) == nres
 
     @pytest.mark.parametrize('code,data,toggle', [
         (200,{'toggle': True}, True),
@@ -100,16 +129,18 @@ class TestMessageManager:
             assert _toggle == False
             assert _code == 500
 
-    @pytest.mark.parametrize('dt, cf, nres', [
-        (None, True, 2,),
-        (None, False, 3,),
-        (datetime(2022,10,10), False, 2),
+    @pytest.mark.parametrize('day_dt, month_dt, cf, nres', [
+        (None, None, True, 2,),
+        (None, None, False, 3,),
+        (datetime(2022,10,10), None, False, 2),
+        (None, datetime(2022,10,1), False, 3),
+        (datetime(2022,10,10), datetime(2022,10,1), False, 2),
     ])
-    def test_get_received_messages(self, received_list, dt, cf, nres):
+    def test_get_received_messages(self, received_list, day_dt, month_dt, cf, nres):
         print(db.session.query(Message).count())
         with mock.patch('mib.dao.message_manager.MessageManager.get_user_content_filter') as m:
             m.return_value = 200, cf
-            _messages, _dict = MessageManager.get_received_messages(1, today_dt=dt)
+            _messages, _dict = MessageManager.get_received_messages(1, day_dt=day_dt, month_dt=month_dt)
             assert all(map(lambda m: 1 in [r.id_recipient for r in m.recipients] and m.is_sent == True and m.is_arrived == True, _messages))
             assert all(map(lambda v: not v, _dict.values()))
             assert len(_messages) == nres
