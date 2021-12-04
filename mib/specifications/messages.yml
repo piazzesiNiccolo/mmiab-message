@@ -336,7 +336,7 @@ paths:
         default:
           description: An error occured while retrieving the message
 
-  /timeline/list/received:
+  /timeline/list/{id_usr}:
     get:
       tags: [ Messages ]
       parameters:
@@ -357,94 +357,32 @@ paths:
           description: month identifier
           schema:
             type: integer
-        description: Gets the list of received messages by the user
-        operationId: mib.resources.messages.message_list_received_monthly
+        description: Gets the list of sent and received messages by the user
+        operationId: mib.resources.messages.message_list_monthly
         responses:
         200:
-          description: Return the list of sent messages
+          description: Return the list of sent and received messages
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  messages:
+                  messages_sent:
                     type: array
-                    items:
-                      $ref: '#/components/schemas/Message'
-                  recipients:
-                    type: object
-                    additionalProperties:
-                      $ref: '#/components/schemas/User'
-                  images:
+                    items: 
+                      type: integer
+                      format: int64
+                  messages_received:
                     type: array
-                    items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          description: name of the image file
-                        data:
-                          type: string
-                          description: data of the image
-                        type:
-                          type: string
-                          description: type of the image
-        default:
-          description: An error occured while retrieving the message
-
-  /timeline/list/sent:
-    get:
-      tags: [ Messages ]
-      parameters:
-        - in: path
-          name: id_usr
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: id of the user
-        - name: y
-          in: query
-          description: year identifier
-          schema:
-            type: integer
-        - name: m
-          in: query
-          description: month identifier
-          schema:
-            type: integer
-        description: Gets the list of sent messages by the user
-        operationId: mib.resources.messages.message_list_sent_monthly
-        responses:
-        200:
-          description: Return the list of sent messages
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  messages:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Message'
-                  recipients:
-                    type: object
-                    additionalProperties:
-                      $ref: '#/components/schemas/User'
-                  images:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          description: name of the image file
-                        data:
-                          type: string
-                          description: data of the image
-                        type:
-                          type: string
-                          description: type of the image
+                    items: 
+                      type: integer
+                      format: int64
+                  year:
+                    type: integer
+                    format: int64
+                  month:
+                    type: integer
+                    format: int64
         default:
           description: An error occured while retrieving the message
 

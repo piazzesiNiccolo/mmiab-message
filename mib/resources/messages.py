@@ -6,6 +6,7 @@ from mib.dao.recipient_manager import RecipientManager
 from mib.dao.utils import Utils
 from mib.dao.content_filter import ContentFilter
 from mib.models.message import Message
+import calendar
 
 def draft():
     post_data = request.get_json()
@@ -289,46 +290,35 @@ def message_list_received(id_usr: int):
 
     return jsonify(response_object), 200
 
-def message_list_received_monthly(id_usr: int, year: int, month: int):
+def message_list_monthly(id_usr: int, year: int, month: int):
 
     year = request.args.get('y',None)
     month = request.args.get('m',None)
 
-    list_of_messages = MessageManager.get_message_list_received_monthly(id_usr,year,month)
+    try:
+        month_dt = datetime(year, month, 1)
+    except (ValueError, TypeError):
+        month_dt = datetime.today()
 
-    messages_dicts = [m.serialize() for m in list_of_messages]
-    recipients_info = MessageManager.retrieve_users_info(
-        id_list=[m.id_sender for m in list_of_messages],
-        deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
-    )
-    message_images = [Utils.load_message_image(m) for m in list_of_messages]
+    list_of_messages_sent = MessageManager.get_sent_messages(id_usr, month_dt=month_dt)
+
+    list_of_messages_received, _ = MessageManager.get_received_messages(id_usr,month_dt=month_dt)
+
+    first_day, number_of_days = calendar.monthrange(month_dt.year, month_dt.month)
+    sent, received = number_of_days * [0], number_of_days * [0]
+
+    for elem in list_of_messages_sent:
+        sent[elem.delivery_date.day - 1] += 1
+
+    for elem in list_of_messages_received:
+        received[elem.delivery_date.day - 1] += 1
+
     response_object = {
         'status': 'success',
-        'messages': messages_dicts,
-        'recipients': recipients_info,
-        'images': message_images,
-    }
-
-    return jsonify(response_object), 200
-
-def message_list_sent_monthly(id_usr: int, year: int, month: int):
-
-    year = request.args.get('y',None)
-    month = request.args.get('m',None)
-
-    list_of_messages = MessageManager.get_message_list_sent_monthly(id_usr,year,month)
-
-    messages_dicts = [m.serialize() for m in list_of_messages]
-    recipients_info = MessageManager.retrieve_users_info(
-        id_list=[m.id_sender for m in list_of_messages],
-        deep_list=[RecipientManager.get_recipients(m) for m in list_of_messages],
-    )
-    message_images = [Utils.load_message_image(m) for m in list_of_messages]
-    response_object = {
-        'status': 'success',
-        'messages': messages_dicts,
-        'recipients': recipients_info,
-        'images': message_images,
+        'messages_sent': sent,
+        'messages_received': received,
+        'year': month_dt.year,
+        'month': month_dt.month,
     }
 
     return jsonify(response_object), 200

@@ -141,59 +141,11 @@ class MessageManager(Manager):
 
         return code,obj
 
-    '''
     @classmethod
-    def get_message_list_received_monthly(id_usr: int, year:int,month:int):
-
-        month_fst = datetime(year, month, 1)
-        next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
-        query = (
-            db.session.query(Message)
-            .filter(
-                Message.is_sent == True,
-                Message.is_arrived == True,
-                Message.date_of_send >= month_fst,
-                Message.date_of_send < next_month_fst,
-            )
-            .filter(
-                Message.recipients.any(
-                    and_(Recipient.id_recipient == id, Recipient.read_deleted == False)
-                )
-            )
-        )
-        code, toggle = MessageManager.get_user_content_filter(id)
-        if ( toggle == True):
-            query = query.filter(Message.to_filter == False)
-
-        return query.all()
-
-    @classmethod
-    def get_message_list_sent_monthly(id_usr: int, year:int,month:int):
-
-        """
-        Returns a list of sent messages scheduled for a given month
-        """
-        month_fst = datetime(year, month, 1)
-        next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
-        result = (
-            db.session.query(Message)
-            .filter(
-                Message.is_sent == True,
-                Message.id_sender == id,
-                Message.date_of_send >= month_fst,
-                Message.date_of_send < next_month_fst,
-            )
-            .all()
-        )
-        return result
-    '''
-
-    @classmethod
-    def get_received_messages(cls, id: int, day_dt: datetime, month_dt: datetime):
+    def get_received_messages(cls, id: int, day_dt: datetime = None, month_dt: datetime = None):
         """
         Returns the list of received messages by a specific user.
         """
-        #received normale
         query = (
             db.session.query(Message)
             .filter(
@@ -208,10 +160,7 @@ class MessageManager(Manager):
         _, toggle = MessageManager.get_user_content_filter(id)
         if ( toggle == True):
             query = query.filter(Message.to_filter == False)
-
-        # query = query.join(Message.id_sender == id).all()
-        #fine received normale
-        #timeline
+        
         if day_dt is not None:
             query = cls.filter_query_daily(query, day_dt=day_dt)
         elif month_dt is not None:
