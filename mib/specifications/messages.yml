@@ -286,18 +286,18 @@ paths:
             type: integer
             format: int64
           description: id of the user
-        - name: y
-          in: query
+        - in: query
+          name: y
           description: year identifier
           schema:
             type: integer
-        - name: m
-          in: query
+        - in: query
+          name: m
           description: month identifier
           schema:
             type: integer
-        - name: d
-          in: query
+        - in: query
+          name: d
           description: day identifier
           schema:
             type: integer
@@ -319,20 +319,6 @@ paths:
                     type: object
                     additionalProperties:
                       $ref: '#/components/schemas/User'
-                  images:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          description: name of the image file
-                        data:
-                          type: string
-                          description: data of the image
-                        type:
-                          type: string
-                          description: type of the image
         default:
           description: An error occured while retrieving the message
 
@@ -340,26 +326,26 @@ paths:
     get:
       tags: [ Messages ]
       parameters:
-        - name: id_usr
-          in: path
+        - in: path
+          name: id_usr
+          description: user identifier
           required: true
           schema:
             type: integer
             format: int64
-          description: id of the user
-        - name: y
-          in: query
+        - in: query
+          name: y
           description: year identifier
           schema:
             type: integer
-        - name: m
-          in: query
+        - in: query
+          name: m
           description: month identifier
           schema:
             type: integer
-        description: Gets the list of sent and received messages by the user
-        operationId: mib.resources.messages.message_list_monthly
-        responses:
+      description: Gets the list of sent and received messages by the user
+      operationId: mib.resources.messages.message_list_monthly
+      responses:
         200:
           description: Return the list of sent and received messages
           content:
