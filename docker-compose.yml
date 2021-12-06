@@ -15,7 +15,7 @@ services:
   mib_message:
     <<: &mib_message
       # Building the image
-      image: "mib_message:latest"
+      image: "mib-message:latest"
       build:
         context: .
         dockerfile: Dockerfile 
@@ -31,19 +31,28 @@ services:
       - migrations
   celery:
         depends_on:
-            - redis
-            - mib_message
+            - redis-celery
+            - mib-message
+            - db
+            - migrations
         build: .
         restart: always
-        command: celery -A background worker -B --loglevel=info
+        command: celery -A mib.background worker -B --loglevel=info
         env_file:
           - env_file
+        environment:
+          - REDIS_HOST=redis
+          - POSTGRES_HOST=db
+          - CELERY_REDIS_HOST=redis-celery
+          - CELERY_REDIS_PORT=6380
         links:
             -  redis
-  redis:
+  redis-celery:
       image: "redis:alpine"
-      container_name: rd01
-      command: --port 6379
+      command: --port 6380
+      ports:
+        - "6380:6380"
+
   migrations:
     #
     # this service is used to apply migrations on db
