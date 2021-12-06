@@ -3,6 +3,8 @@ Flask initialization
 """
 import os
 
+from mib.events.redis_setup import get_redis
+
 __version__ = '0.1'
 
 import connexion
@@ -68,11 +70,9 @@ def create_app():
         app=app,
         db=db
     )
-
-    # checking the environment
-    if flask_env == 'testing' or flask_env == 'development':
-        # we need to populate the db
-        db.create_all(app=app)
+    redis_client = get_redis(app)
+    init_logger()
+    db.create_all(app=app)
 
     # registering to api app all specifications
     register_specifications(api_app)
