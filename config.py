@@ -7,6 +7,9 @@ class Config(object):
     UPLOAD_FOLDER = os.path.join("/static", "assets")
     UNSAFE_WORDS_FOLDER = os.path.join("/static", "txt")
     REQUESTS_TIMEOUT_SECONDS = float(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
+    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT = os.getenv("REDIS_PORT", 6379)
+    REDIS_DB = os.getenv("REDIS_DB", 0)
 
     # users microservice
     USERS_MS_PROTO = os.getenv('USERS_MS_PROTO', 'http')

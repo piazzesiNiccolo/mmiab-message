@@ -40,7 +40,7 @@ class ContextTask(TaskBase):  # pragma: no cover
 celery.Task = ContextTask
 
 celery.conf.beat_schedule = {
-    "arrived_messages": {"task": __name__ + ".arrived_messages", "schedule": 60.0},
+    "arrived_messages": {"task": __name__ + ".arrived_messages", "schedule": 5.0},
 }
 
 @celery.task

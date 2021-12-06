@@ -60,6 +60,7 @@ class MessageManager(Manager):
         """
         Returns the list of drafted messages by a specific user.
         """
+        print('ms dao', db.session.query(Message).all())
         mess = (
             db.session.query(Message)
             .filter(
@@ -233,11 +234,11 @@ class MessageManager(Manager):
             return {}
 
         id_list_str = ','.join([str(id) for id in id_list])
-        endpoint = f"{cls.users_endpoint()}/users/display_info?ids=[{id_list_str}]"
+        endpoint = f"{cls.users_endpoint()}/users/display_info?ids={id_list_str}"
         try:
             response = requests.get(endpoint, timeout=cls.requests_timeout_seconds())
             if response.status_code == 200:
-                recipients = response.json()['recipients']
+                recipients = response.json()['users']
                 formatted_rcp = {}
                 for rcp in recipients:
                     _id = rcp['id']
@@ -257,6 +258,7 @@ class MessageManager(Manager):
             Message.is_arrived == False,
             Message.delivery_date is not None,
         )
+        print(db.session.query(Message).all())
 
         messages_arrived = []
         for m in messages.all():
