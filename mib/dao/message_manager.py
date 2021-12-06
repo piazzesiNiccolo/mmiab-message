@@ -10,6 +10,7 @@ from mib.models.message import Message
 from mib.models.recipient import Recipient
 from mib.events.publishers import EventPublishers
 from mib.dao.recipient_manager import RecipientManager
+from mib.dao.utils import Utils
 from sqlalchemy import and_
 from sqlalchemy.orm import Query
 
@@ -198,6 +199,7 @@ class MessageManager(Manager):
             message.recipients = []
             db.session.delete(message)
             db.session.commit()
+            Utils.delete_message_image(message)
             return True
 
         return False
