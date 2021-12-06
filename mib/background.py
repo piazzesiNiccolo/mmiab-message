@@ -7,7 +7,7 @@ from celery import Celery
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
 from mib.dao.message_manager import MessageManager as MM
-
+from mib.events.publishers import EventPublishers
 _APP = None
 
 # BACKEND = "redis://localhost:6379"
@@ -49,20 +49,22 @@ def arrived_messages():  # pragma: nocover
 
 def _arrived_messages():
     message_list = MM.get_new_arrived_messages()
-
-    # TODO: publish notifications for recipient
-    #
-    # old implementation:
-    # for message in message_list:
-    #     for recipient in message["recipients"]:
-    #         # add notify for the receipent
-    #         NotifyModel.add_notify(
-    #             id_message=message["id"],
-    #             id_user=recipient,
-    #             for_recipient=True,
-    #         )
-
-    return message_list
+    payload = {
+        "notifications":[]
+    }
+    for message in message_list:
+        for recipient in message["recipients"]:
+            payload["notifications"].append({
+                "id_message":message["id"],
+                "id_user":recipient,
+                "for_recipient":True,
+                "for_sender":False,
+                "for_lottery":False,
+                "from_recipient":None
+            })
+    EventPublishers.publish_add_notify(payload)
+    
+    return payload
 
 
 

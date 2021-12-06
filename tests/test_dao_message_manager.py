@@ -1,7 +1,7 @@
 import requests
 import mock
 import pytest
-from datetime import datetime
+from datetime import datetime,timedelta
 from mib import db
 from mib.models.recipient import Recipient
 from mib.models.message import Message
@@ -241,4 +241,15 @@ class TestMessageManager:
             m.side_effect = exception()
             dict = MessageManager.retrieve_users_info(id_list=[1], deep_list=[])
             assert len(dict.keys()) == 0
+
+    def test_get_arrived_messages(self, messages):
+        messages[0].delivery_date=datetime.strptime('10/10/2021 10:30', '%d/%m/%Y %H:%M')
+        messages[0].is_sent = True
+        messages[1].delivery_date=datetime.today() + timedelta(days=1)
+        messages[1].is_sent = True
+
+        mess = MessageManager.get_new_arrived_messages()
+        assert len(mess) == 1
+        assert mess[0]["id"] == messages[0].id_message
+
 

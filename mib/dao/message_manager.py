@@ -8,6 +8,7 @@ from mib import db
 from mib.dao.manager import Manager
 from mib.models.message import Message
 from mib.models.recipient import Recipient
+from mib.events.publishers import EventPublishers
 from mib.dao.recipient_manager import RecipientManager
 from sqlalchemy import and_
 from sqlalchemy.orm import Query
@@ -208,6 +209,9 @@ class MessageManager(Manager):
     @classmethod
     def withdraw_message(cls, message: Message):
         message.is_sent = False
+        EventPublishers.publish_withdraw_points({"users":[
+            {"id":message.id_sender,"points":-1}
+        ]})
         db.session.commit()
 
     @classmethod
