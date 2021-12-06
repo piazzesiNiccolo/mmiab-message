@@ -246,4 +246,32 @@ class MessageManager(Manager):
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             return {}
 
+    @classmethod
+    def get_new_arrived_messages(cls):
+        messages = db.session.query(Message).filter(
+            Message.is_sent == True,
+            Message.is_arrived == False,
+            Message.delivery_date is not None,
+        )
+
+        messages_arrived = []
+        for m in messages.all():
+            if (m.delivery_date - datetime.now()).total_seconds() <= 0:
+
+                m.is_arrived = True
+                messages_arrived.append(m)
+
+        db.session.commit()
+
+        return [
+            {
+                "id": m.id_message,
+                "date": m.delivery_date.strftime("%d/%m/%Y %H:%M"),
+                "sent": m.is_sent,
+                "received": m.is_arrived,
+                "recipients": [recipient.id_recipient for recipient in m.recipients],
+            }
+            for m in messages_arrived
+        ]
+
 
