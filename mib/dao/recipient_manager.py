@@ -44,9 +44,9 @@ class RecipientManager:
                 db.session.commit()
                 return flag
             except StopIteration:
-                return False
+                return True
 
-        return False
+        return True
 
     @classmethod
     def can_delete_read(cls, message: Message, id_recipient: int) -> bool:
