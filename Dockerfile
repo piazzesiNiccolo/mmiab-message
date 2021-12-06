@@ -20,6 +20,9 @@ RUN ["pip", "install", "-r", "requirements.prod.txt"]
 # creating the environment
 COPY . /app
 
+# moving the static contents
+RUN ["mv", "/app/mib/static", "/static"]
+
 # exposing the port
 EXPOSE 5000/tcp
 
