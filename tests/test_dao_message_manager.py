@@ -207,6 +207,8 @@ class TestMessageManager:
         def mock_get_fun(endpoint, timeout=5):
             inds = endpoint.find('[')
             inde = endpoint.find(']')
+            print(inds)
+            print(inde)
             ids = map(lambda s: int(s), endpoint[inds+1:inde].split(','))
             nonlocal _called
             _called = True

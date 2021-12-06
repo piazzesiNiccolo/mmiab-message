@@ -229,7 +229,7 @@ class MessageManager(Manager):
             return {}
 
         id_list_str = ','.join([str(id) for id in id_list])
-        endpoint = f"{cls.users_endpoint()}/users/display_info?ids={id_list_str}"
+        endpoint = f"{cls.users_endpoint()}/users/display_info?ids=[{id_list_str}]"
         try:
             response = requests.get(endpoint, timeout=cls.requests_timeout_seconds())
             if response.status_code == 200:
