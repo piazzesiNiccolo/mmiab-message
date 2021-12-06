@@ -1,0 +1,71 @@
+version: "3.6"
+
+services:
+  db:
+    image: postgres:13
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # this is only for development purpose
+      - "5342:5342"
+    env_file:
+      - env_file
+
+  mib_message:
+    <<: &mib_message
+      # Building the image
+      image: "mib-message:latest"
+      build:
+        context: .
+        dockerfile: Dockerfile 
+
+    ports:
+     - "5000:5000"
+    env_file:
+      - env_file
+    environment:
+      - POSTGRES_HOST=db
+    depends_on:
+      - db
+      - migrations
+  celery:
+        depends_on:
+            - redis-celery
+            - mib-message
+            - db
+            - migrations
+        build: .
+        restart: always
+        command: celery -A mib.background worker -B --loglevel=info
+        env_file:
+          - env_file
+        environment:
+          - REDIS_HOST=redis
+          - POSTGRES_HOST=db
+          - CELERY_REDIS_HOST=redis-celery
+          - CELERY_REDIS_PORT=6380
+        links:
+            -  redis
+  redis-celery:
+      image: "redis:alpine"
+      command: --port 6380
+      ports:
+        - "6380:6380"
+
+  migrations:
+    #
+    # this service is used to apply migrations on db
+    #
+    <<: *mib_message
+    command: flask db upgrade
+    env_file:
+      - env_file
+    environment:
+      - POSTGRES_HOST=db
+    restart: on-failure
+
+# Declaring all volumes
+volumes:
+  pgdata: 
+
