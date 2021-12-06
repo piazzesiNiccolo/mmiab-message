@@ -40,12 +40,12 @@ class ContextTask(TaskBase):  # pragma: no cover
 celery.Task = ContextTask
 
 celery.conf.beat_schedule = {
-    "arrived_messages": {"task": __name__ + ".arrived_messages", "schedule": 5.0},
+    "arrived_messages": {"task": __name__ + ".arrived_messages", "schedule": 60.0},
 }
 
 @celery.task
 def arrived_messages():  # pragma: nocover
-    _arrived_messages()
+    return _arrived_messages()
 
 def _arrived_messages():
     message_list = MM.get_new_arrived_messages()
