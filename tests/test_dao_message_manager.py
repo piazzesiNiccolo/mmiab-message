@@ -14,7 +14,7 @@ class TestMessageManager:
         dict(
             id_sender=1,
             message_body='test body',
-            delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+            delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
             recipients=[Recipient(id_recipient=2)],
             reply_to=1,
             to_filter=True,
@@ -28,13 +28,13 @@ class TestMessageManager:
         dict(
             id_sender=1,
             message_body='test body',
-            delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+            delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
             to_filter=True,
         ),
         dict(
             id_sender=1,
             message_body='test body',
-            delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+            delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
             recipients=[Recipient(id_recipient=2)],
             to_filter=False,
         ),
@@ -50,7 +50,7 @@ class TestMessageManager:
     def test_update_message_ok(self, messages):
         message, _ = messages
         message.message_body='updated test body'
-        message.delivery_date=datetime.strptime('11/11/2022 10:30', '%d/%m/%Y %H:%M')
+        message.delivery_date=datetime.strptime('11/11/2022 10:30', '%H:%M %d/%m/%Y')
         message.recipients=[Recipient(id_recipient=3)]
         message.to_filter=False
         MessageManager.update_message(message)
@@ -243,7 +243,7 @@ class TestMessageManager:
             assert len(dict.keys()) == 0
 
     def test_get_arrived_messages(self, messages):
-        messages[0].delivery_date=datetime.strptime('10/10/2021 10:30', '%d/%m/%Y %H:%M')
+        messages[0].delivery_date=datetime.strptime('10/10/2021 10:30', '%H:%M %d/%m/%Y')
         messages[0].is_sent = True
         messages[1].delivery_date=datetime.today() + timedelta(days=1)
         messages[1].is_sent = True

@@ -270,7 +270,7 @@ class MessageManager(Manager):
         return [
             {
                 "id": m.id_message,
-                "date": m.delivery_date.strftime("%d/%m/%Y %H:%M"),
+                "date": m.delivery_date.strftime("%H:%M %d/%m/%Y"),
                 "sent": m.is_sent,
                 "received": m.is_arrived,
                 "recipients": [recipient.id_recipient for recipient in m.recipients],

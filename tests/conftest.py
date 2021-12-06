@@ -17,7 +17,7 @@ def messages():
     message1 = Message(
         id_sender=1,
         message_body='test body',
-        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('10:30 10/10/2022', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=2)],
         reply_to=1,
         to_filter=True,
@@ -25,7 +25,7 @@ def messages():
     message2 = Message(
         id_sender=1,
         message_body='test body 2',
-        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('10:30 10/10/2022', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=4)],
         to_filter=True,
     )
@@ -44,13 +44,13 @@ def draft_list():
     message1 = Message(
         id_sender=1,
         message_body='test body',
-        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=2)],
     )
     message2 = Message(
         id_sender=1,
         message_body='test body 2',
-        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=4)],
     )
     db.session.add(message1)
@@ -69,21 +69,21 @@ def sent_list():
     message1 = Message(
         id_sender=1,
         message_body='test body',
-        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=2)],
         is_sent = True,
     )
     message2 = Message(
         id_sender=1,
         message_body='test body 2',
-        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=4)],
         is_sent = True,
     )
     message3 = Message(
         id_sender=1,
         message_body='test body 3',
-        delivery_date=datetime.strptime('09/11/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('09/11/2022 10:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=5)],
         is_sent = True,
     )
@@ -105,7 +105,7 @@ def received_list():
     message1 = Message(
         id_sender=2,
         message_body='test body',
-        delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=1)],
         is_sent=True,
         is_arrived=True,
@@ -113,7 +113,7 @@ def received_list():
     message2 = Message(
         id_sender=2,
         message_body='test body 2',
-        delivery_date=datetime.strptime('10/10/2022 09:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('10/10/2022 09:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=4), Recipient(id_recipient=1)],
         is_sent=True,
         is_arrived=True,
@@ -121,7 +121,7 @@ def received_list():
     message3 = Message(
         id_sender=2,
         message_body='test body 3',
-        delivery_date=datetime.strptime('09/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('09/10/2022 10:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=6), Recipient(id_recipient=1), Recipient(id_recipient=5)],
         to_filter=True,
         is_sent=True,
@@ -130,7 +130,7 @@ def received_list():
     message4 = Message(
         id_sender=2,
         message_body='test body 3',
-        delivery_date=datetime.strptime('09/10/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('09/10/2022 10:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=3), Recipient(id_recipient=5)],
         is_sent=True,
         is_arrived=True,
@@ -138,7 +138,7 @@ def received_list():
     message5 = Message(
         id_sender=2,
         message_body='test body 3',
-        delivery_date=datetime.strptime('09/11/2022 10:30', '%d/%m/%Y %H:%M'),
+        delivery_date=datetime.strptime('09/11/2022 10:30', '%H:%M %d/%m/%Y'),
         recipients=[Recipient(id_recipient=1, read_deleted=True), Recipient(id_recipient=5)],
         is_sent=True,
         is_arrived=True,
