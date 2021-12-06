@@ -4,6 +4,7 @@ from mib.dao.message_manager import MessageManager as MM
 from mib.dao.recipient_manager import RecipientManager as RM
 from mib.dao.utils import Utils
 from mib.dao.content_filter import ContentFilter
+from mib.events.publishers import EventPublishers
 from mib.models.message import Message
 import calendar
 
@@ -190,6 +191,16 @@ def read_message(id_message, id_user):
         return jsonify(response_object),401
 
     else:
+        if not RM.has_opened(message,id_user):
+            payload = {"notifications":[{
+                "id_message":message.id_message,
+                "id_user":message.id_sender,
+                "for_recipient":False,
+                "for_sender":True,
+                "for_lottery":True,
+                "from_recipient":id_user
+            }]}
+            EventPublishers.publish_add_notify(payload)
         message_dict = message.serialize()
         users_info = MM.retrieve_users_info(
             id_list=RM.get_recipients(message) + [message.id_sender]
