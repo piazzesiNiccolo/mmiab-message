@@ -14,7 +14,7 @@ class TestMessageManager:
         dict(
             id_sender=1,
             message_body='test body',
-            delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
+            delivery_date=datetime.strptime('10:30 10/10/2022', '%H:%M %d/%m/%Y'),
             recipients=[Recipient(id_recipient=2)],
             reply_to=1,
             to_filter=True,
@@ -28,13 +28,13 @@ class TestMessageManager:
         dict(
             id_sender=1,
             message_body='test body',
-            delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
+            delivery_date=datetime.strptime('10:30 10/10/2022', '%H:%M %d/%m/%Y'),
             to_filter=True,
         ),
         dict(
             id_sender=1,
             message_body='test body',
-            delivery_date=datetime.strptime('10/10/2022 10:30', '%H:%M %d/%m/%Y'),
+            delivery_date=datetime.strptime('10:30 10/10/2022', '%H:%M %d/%m/%Y'),
             recipients=[Recipient(id_recipient=2)],
             to_filter=False,
         ),
@@ -50,7 +50,7 @@ class TestMessageManager:
     def test_update_message_ok(self, messages):
         message, _ = messages
         message.message_body='updated test body'
-        message.delivery_date=datetime.strptime('11/11/2022 10:30', '%H:%M %d/%m/%Y')
+        message.delivery_date=datetime.strptime('10:30 11/11/2022', '%H:%M %d/%m/%Y')
         message.recipients=[Recipient(id_recipient=3)]
         message.to_filter=False
         MessageManager.update_message(message)
@@ -205,16 +205,13 @@ class TestMessageManager:
     def test_retrieve_users_info(self, code, id_list, deep_list, diff_elem, called):
         _called = False
         def mock_get_fun(endpoint, timeout=5):
-            inds = endpoint.find('[')
-            inde = endpoint.find(']')
-            print(inds)
-            print(inde)
-            ids = map(lambda s: int(s), endpoint[inds+1:inde].split(','))
+            inds = endpoint.find('=')
+            ids = map(lambda s: int(s), endpoint[inds+1:].split(','))
             nonlocal _called
             _called = True
             return MockResponse(
                 code=code,
-                json={'recipients': [{'id': id, 'test': 'test value'} for id in ids]}
+                json={'users': [{'id': id, 'test': 'test value'} for id in ids]}
             )
 
         with mock.patch('requests.get', new=mock_get_fun):
@@ -243,7 +240,7 @@ class TestMessageManager:
             assert len(dict.keys()) == 0
 
     def test_get_arrived_messages(self, messages):
-        messages[0].delivery_date=datetime.strptime('10/10/2021 10:30', '%H:%M %d/%m/%Y')
+        messages[0].delivery_date=datetime.strptime('10:30 10/10/2021', '%H:%M %d/%m/%Y')
         messages[0].is_sent = True
         messages[1].delivery_date=datetime.today() + timedelta(days=1)
         messages[1].is_sent = True

@@ -40,7 +40,7 @@ class Utils:
         }
 
     @staticmethod
-    def delete_message_image(message: Message) -> dict:
+    def delete_message_image(message: Message) -> bool:
         file_name = message.img_path
         if file_name is not None:
             file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], file_name)
