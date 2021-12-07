@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 class TestBackgroundTasks:
 
     def test_arrived_messages(self, messages):
-        messages[0].delivery_date=datetime.strptime('10/10/2021 10:30', '%d/%m/%Y %H:%M')
+        messages[0].delivery_date=datetime.strptime('10:30 10/10/2021', '%H:%M %d/%m/%Y')
         messages[0].is_sent = True
         messages[1].delivery_date=datetime.today() + timedelta(days=1)
         messages[1].is_sent = True

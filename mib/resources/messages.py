@@ -17,7 +17,7 @@ def draft():
     try:
         delivery_date = datetime.strptime( 
             post_data.get('delivery_date', None), 
-            '%d/%m/%Y %H:%M',
+            '%H:%M %d/%m/%Y',
         )
     except (ValueError, TypeError):
         delivery_date = None
@@ -59,7 +59,7 @@ def update_draft(id_message, id_sender):
     try:
         delivery_date = datetime.strptime( 
             post_data.get('delivery_date', None), 
-            '%d/%m/%Y %H:%M',
+            '%H:%M %d/%m/%Y',
         )
     except (ValueError, TypeError):
         delivery_date = None
