@@ -23,16 +23,32 @@ class Utils:
     @staticmethod
     def load_message_image(message: Message) -> dict:
         file_name = message.img_path
-        file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], file_name)
-        try:
-            with open(file_path, 'rb') as file:
-                b64_file = base64.b64encode(file.read()).decode("utf8")
-        except FileNotFoundError:
-            b64_file = ''
+        b64_file, type = '', ''
+        if file_name is not None:
+            file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], file_name)
+            try:
+                with open(file_path, 'rb') as file:
+                    b64_file = base64.b64encode(file.read()).decode("utf8")
+                    type = os.path.splitext(file_name)[1][1:]
+            except FileNotFoundError:
+                b64_file, type = '', ''
 
         return {
             'name': file_name,
             'data': b64_file,
-            'type': os.path.splitext(file_name)[1][1:]
+            'type': type,
         }
+
+    @staticmethod
+    def delete_message_image(message: Message) -> bool:
+        file_name = message.img_path
+        if file_name is not None:
+            file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], file_name)
+            try:
+                os.remove(file_path)
+                return True
+            except FileNotFoundError:
+                return False
+
+        return False
 

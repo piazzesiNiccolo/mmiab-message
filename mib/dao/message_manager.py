@@ -10,6 +10,7 @@ from mib.models.message import Message
 from mib.models.recipient import Recipient
 from mib.events.publishers import EventPublishers
 from mib.dao.recipient_manager import RecipientManager
+from mib.dao.utils import Utils
 from sqlalchemy import and_
 from sqlalchemy.orm import Query
 
@@ -60,6 +61,7 @@ class MessageManager(Manager):
         """
         Returns the list of drafted messages by a specific user.
         """
+        print('ms dao', db.session.query(Message).all())
         mess = (
             db.session.query(Message)
             .filter(
@@ -197,6 +199,7 @@ class MessageManager(Manager):
             message.recipients = []
             db.session.delete(message)
             db.session.commit()
+            Utils.delete_message_image(message)
             return True
 
         return False
@@ -233,11 +236,11 @@ class MessageManager(Manager):
             return {}
 
         id_list_str = ','.join([str(id) for id in id_list])
-        endpoint = f"{cls.users_endpoint()}/users/display_info?ids=[{id_list_str}]"
+        endpoint = f"{cls.users_endpoint()}/users/display_info?ids={id_list_str}"
         try:
             response = requests.get(endpoint, timeout=cls.requests_timeout_seconds())
             if response.status_code == 200:
-                recipients = response.json()['recipients']
+                recipients = response.json()['users']
                 formatted_rcp = {}
                 for rcp in recipients:
                     _id = rcp['id']
@@ -257,6 +260,7 @@ class MessageManager(Manager):
             Message.is_arrived == False,
             Message.delivery_date is not None,
         )
+        print(db.session.query(Message).all())
 
         messages_arrived = []
         for m in messages.all():
@@ -270,7 +274,7 @@ class MessageManager(Manager):
         return [
             {
                 "id": m.id_message,
-                "date": m.delivery_date.strftime("%d/%m/%Y %H:%M"),
+                "date": m.delivery_date.strftime("%H:%M %d/%m/%Y"),
                 "sent": m.is_sent,
                 "received": m.is_arrived,
                 "recipients": [recipient.id_recipient for recipient in m.recipients],

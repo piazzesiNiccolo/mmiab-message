@@ -50,11 +50,11 @@ class TestRecipientManager:
     @pytest.mark.parametrize("is_none,recipients,id,old_value,result", [
         (False, [1, 2, 3], 1, True, True),
         (False, [1, 2, 3], 1, False, False),
-        (False, [1, 2, 3], 4, False, False),
-        (False, [1, 2, 3], 4, True, False),
-        (False, [], 1, False, False),
-        (False, [], 1, True, False),
-        (True, [], 1, False, False),
+        (False, [1, 2, 3], 4, False, True),
+        (False, [1, 2, 3], 4, True, True),
+        (False, [], 1, False, True),
+        (False, [], 1, True, True),
+        (True, [], 1, False, True),
     ])
     def test_has_opened(self, is_none, recipients, id, old_value, result):
         if is_none:

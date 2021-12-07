@@ -26,18 +26,18 @@ class TestMessages:
         ({
             'id_sender': 1,
             'message_body': 'test body',
-            'delivery_date': '10/10/2022 10:30',
+            'delivery_date': '10:30 10/10/2022',
         }, 201),
         ({
             'id_sender': 1,
             'message_body': 'test body',
-            'delivery_date': '10/10/2022 10:30',
+            'delivery_date': '10:30 10/10/2022',
             'recipients': [2,3],
         }, 201),
         ({
             'id_sender': 1,
             'message_body': 'test body',
-            'delivery_date': '10/10/2022 10:30',
+            'delivery_date': '10:30 10/10/2022',
             'recipients': [2,3],
             'image': {
                 'name': 'test.png',
@@ -58,7 +58,7 @@ class TestMessages:
             assert msg.id_sender == data.get('id_sender', None)
             assert msg.message_body == data.get('message_body', None)
             try:
-                dt = datetime.strptime(data.get('delivery_date'), '%d/%m/%Y %H:%M')
+                dt = datetime.strptime(data.get('delivery_date'), '%H:%M %d/%m/%Y')
                 assert msg.delivery_date == dt
             except (ValueError, TypeError):
                 assert msg.delivery_date == None
@@ -88,18 +88,18 @@ class TestMessages:
         ({
             'id_sender': 1,
             'message_body': 'test update body',
-            'delivery_date': '10/10/2022 20:30',
+            'delivery_date': '20:30 10/10/2022',
         }, 201),
         ({
             'id_sender': 1,
             'message_body': 'test update body',
-            'delivery_date': '10/10/2022 20:30',
+            'delivery_date': '20:30 10/10/2022',
             'recipients': [2,3],
         }, 201),
         ({
             'id_sender': 1,
             'message_body': 'test update body',
-            'delivery_date': '10/10/2022 20:30',
+            'delivery_date': '20:30 10/10/2022',
             'recipients': [2,3],
             'image': {
                 'name': 'test.png',
@@ -120,7 +120,7 @@ class TestMessages:
             assert msg.id_sender == data.get('id_sender', None)
             assert msg.message_body == data.get('message_body', None)
             try:
-                dt = datetime.strptime(data.get('delivery_date'), '%d/%m/%Y %H:%M')
+                dt = datetime.strptime(data.get('delivery_date'), '%H:%M %d/%m/%Y')
                 assert msg.delivery_date == dt
             except (ValueError, TypeError):
                 assert msg.delivery_date == None
@@ -181,7 +181,7 @@ class TestMessages:
         (Message(
             id_sender=1, 
             is_sent=False, 
-            delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M')
+            delivery_date=datetime.strptime('10:30 10/10/2022', '%H:%M %d/%m/%Y')
         ), 400),
         (Message(
             id_sender=1, 
@@ -191,7 +191,7 @@ class TestMessages:
         (Message(
             id_sender=1, 
             is_sent=False, 
-            delivery_date=datetime.strptime('10/10/2022 10:30', '%d/%m/%Y %H:%M'), 
+            delivery_date=datetime.strptime('10:30 10/10/2022', '%H:%M %d/%m/%Y'), 
             recipients=[Recipient(id_recipient=2)]
         ), 200),
     ])
