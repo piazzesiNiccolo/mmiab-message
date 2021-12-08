@@ -1,6 +1,7 @@
 import json
 import pytest
 from mib.events.callbacks import delete_recipients_user_not_exists
+from mib.models.message import Message
 from mib.models.recipient import Recipient
 from mib import db
 class TestCallbacks:
@@ -8,7 +9,7 @@ class TestCallbacks:
         "foo",
         "message"
     ])
-    def test_delete_recipients_user_not_exists(self, type, messages):
+    def test_delete_user_not_exists(self, type, messages):
         rec = Recipient()
         msg = {
             "type":type,
@@ -25,3 +26,4 @@ class TestCallbacks:
             assert db.session.query(Recipient).filter(Recipient.id_recipient == 1).first() is not None
         else:
             assert db.session.query(Recipient).filter(Recipient.id_recipient == 1).first() is None
+            assert Message.query.get(1).id_sender == 0
