@@ -267,7 +267,7 @@ def read_message(id_message, id_user):
                 "id_user":message.id_sender,
                 "for_recipient":False,
                 "for_sender":True,
-                "for_lottery":True,
+                "for_lottery":False,
                 "from_recipient":id_user
             }]}
             EventPublishers.publish_add_notify(payload)
