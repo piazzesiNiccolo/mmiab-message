@@ -211,7 +211,6 @@ class TestMessages:
         (Message(id_sender=1, is_sent=False), 0, 400),
         (Message(id_sender=1, is_sent=True, is_arrived=True), 0, 400),
         (Message(id_sender=1, is_sent=True, is_arrived=False), 0, 400),
-        # TODO: test update lottery points to ms user
         (Message(id_sender=1, is_sent=True, is_arrived=False), 2, 200),
     ])
     def test_withdraw_message(self, test_client, message, lp, code):
@@ -228,10 +227,43 @@ class TestMessages:
             
     @pytest.mark.parametrize("message,code", [
         (None, 404),
+        (Message(id_sender=2, is_sent=True, is_arrived=True, recipients=[Recipient(id_recipient=3)]), 403),
+        (Message(id_sender=2, is_sent=True, is_arrived=True, recipients=[Recipient(id_recipient=1)]), 200),
+    ])
+    def test_can_reply(self, test_client, message, code):
+        if message is not None:
+            db.session.add(message)
+            db.session.commit()
+        response = test_client.post('/message/reply/1/1')
+        assert response.status_code == code
+        if message is not None:
+            db.session.delete(message)
+            db.session.commit()
+            
+    @pytest.mark.parametrize("message,code", [
+        (None, 404),
+        (Message(id_sender=2, is_sent=True, is_arrived=False, recipients=[Recipient(id_recipient=3)]), 403),
+        (Message(id_sender=1, is_sent=True, is_arrived=False, recipients=[Recipient(id_recipient=3)]), 200),
+        (Message(id_sender=2, is_sent=True, is_arrived=True, recipients=[Recipient(id_recipient=1)]), 200),
+    ])
+    def test_forward_message(self, test_client, message, code):
+        if message is not None:
+            db.session.add(message)
+            db.session.commit()
+        response = test_client.post('/message/forward/1/1')
+        assert response.status_code == code
+        if message is not None:
+            db.session.delete(message)
+            db.session.commit()
+            
+    @pytest.mark.parametrize("message,code", [
+        (None, 404),
         (Message(id_sender=2, is_arrived=False), 401),
         (Message(id_sender=2, is_arrived=True, recipients=[Recipient(id_recipient=3)]), 401),
         (Message(id_sender=1, is_arrived=True, recipients=[Recipient(id_recipient=3)]), 200),
         (Message(id_sender=2, is_arrived=True, recipients=[Recipient(id_recipient=1)]), 200),
+        (Message(id_sender=2, is_arrived=True, recipients=[Recipient(id_recipient=1)], reply_to=1), 200),
+        (Message(id_sender=2, is_arrived=True, recipients=[Recipient(id_recipient=1)], reply_to=2), 200),
     ])
     def test_read_message(self, test_client, message, code):
         if message is not None:
@@ -241,6 +273,24 @@ class TestMessages:
             ml.return_value = ''
             response = test_client.get('/message/1/1')
             assert response.status_code == code
+        if message is not None:
+            db.session.delete(message)
+            db.session.commit()
+
+    @pytest.mark.parametrize("message,code", [
+        (None, 404),
+        (Message(id_sender=2, is_arrived=False), 401),
+        (Message(id_sender=2, is_arrived=True, recipients=[Recipient(id_recipient=3)]), 401),
+        (Message(id_sender=1, is_arrived=True, recipients=[Recipient(id_recipient=3)]), 200),
+        (Message(id_sender=2, is_arrived=True, recipients=[Recipient(id_recipient=1)]), 200),
+    ])
+    def test_replying_info(self, test_client, message, code):
+        if message is not None:
+            db.session.add(message)
+            db.session.commit()
+            print(message.serialize())
+        response = test_client.get('/message/replying_info/1/1')
+        assert response.status_code == code
         if message is not None:
             db.session.delete(message)
             db.session.commit()

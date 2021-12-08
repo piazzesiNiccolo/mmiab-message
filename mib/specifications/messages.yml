@@ -158,7 +158,7 @@ paths:
                 properties:
                   message:
                     $ref: '#/components/schemas/Message'
-                  recipients:
+                  users:
                     type: object
                     additionalProperties:
                       $ref: '#/components/schemas/User'
@@ -211,6 +211,46 @@ paths:
         default:
           description: An error occure while deleting the message
 
+  /message/replying_info/{id_message}/{id_user}:
+    get:
+      tags: [Messages]
+      parameters:
+        - in: path
+          name: id_message
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the mess
+        - in: path
+          name: id_user
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the user
+      description: Gets the message to read
+      operationId: mib.resources.messages.get_replying_info
+      responses:
+        200:
+          description: Return the selected message replying info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    $ref: '#/components/schemas/Message'
+                  users:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/User'
+        404:
+          description: Message not found
+        401:
+          description: User not allow to read the message
+        default:
+          description: An error occured during retrieving the message
   /message/send/{id_message}/{id_user}:
     post:
       tags: [ Messages ]
@@ -272,6 +312,73 @@ paths:
           description: User not allowed to withdraw the message
         400:
           description: Message is already delivered or not enough lottery points
+        default:
+          description: An error occured while withdrawing the message
+
+  /message/reply/{id_message}/{id_user}:
+    post:
+      tags: [ Messages ]
+      parameters:
+        - in: path
+          name: id_message
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the message
+        - in: path
+          name: id_user
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the sender requesting the operation
+      description: Withdraws a sent message
+      operationId: mib.resources.messages.can_reply
+      responses:
+        200:
+          description: User can reply
+        404:
+          description: Message not found
+        403:
+          description: User not allowed to reply to the message
+        default:
+          description: An error occured while withdrawing the message
+
+  /message/forward/{id_message}/{id_user}:
+    post:
+      tags: [ Messages ]
+      parameters:
+        - in: path
+          name: id_message
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the message
+        - in: path
+          name: id_user
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: id of the sender requesting the operation
+      description: Withdraws a sent message
+      operationId: mib.resources.messages.forward_message
+      responses:
+        200:
+          description: Return the message to forward
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    $ref: '#/components/schemas/Message'
+        404:
+          description: Message not found
+        403:
+          description: User not allowed to reply to the message
         default:
           description: An error occured while withdrawing the message
 

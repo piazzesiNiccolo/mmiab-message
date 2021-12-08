@@ -94,6 +94,19 @@ class MessageManager(Manager):
         return True
 
     @classmethod
+    def user_can_reply(cls, user_id: int, message: Message) -> bool:
+        recipients = [rcp.id_recipient for rcp in message.recipients]
+        return message.is_arrived == True and user_id in recipients
+
+    @classmethod
+    def user_can_forward(cls, user_id: int, message: Message) -> bool:
+        recipients = [rcp.id_recipient for rcp in message.recipients]
+        return (
+            (message.is_arrived == True and user_id in recipients) or
+            (message.is_sent == True and user_id == message.id_sender)
+        )
+
+    @classmethod
     def get_user_lottery_points(cls, user_id: int) -> int:
         user_info = cls.retrieve_users_info(id_list=[user_id])
         info = user_info.get(user_id, None)
