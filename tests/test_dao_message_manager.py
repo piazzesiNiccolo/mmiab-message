@@ -163,6 +163,37 @@ class TestMessageManager:
         db.session.commit()
         assert MessageManager.user_can_read(id_user, _message) == result
 
+    @pytest.mark.parametrize("is_arrived,id_user,result", [
+        (True, 1, False),
+        (True, 2, True),
+        (True, 3, False),
+        (False, 2, False),
+        (False, 3, False),
+    ])
+    def test_user_can_reply(self, messages, is_arrived, id_user, result):
+        _message,_ = messages
+        _message.is_arrived = is_arrived
+        db.session.commit()
+        assert MessageManager.user_can_reply(id_user, _message) == result
+
+    @pytest.mark.parametrize("is_sent,is_arrived,id_user,result", [
+        (True, True, 1, True),
+        (True, True, 2, True),
+        (True, True, 3, False),
+        (True, False, 1, True),
+        (True, False, 2, False),
+        (True, False, 3, False),
+        (False, False, 1, False),
+        (False, False, 2, False),
+        (False, False, 3, False),
+    ])
+    def test_user_can_forward(self, messages, is_sent, is_arrived, id_user, result):
+        _message,_ = messages
+        _message.is_arrived = is_arrived
+        _message.is_sent = is_sent
+        db.session.commit()
+        assert MessageManager.user_can_forward(id_user, _message) == result
+
     @pytest.mark.parametrize("is_sent,is_arrived,result", [
         (True, True, False),
         (False, True, False),

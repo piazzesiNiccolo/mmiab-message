@@ -149,10 +149,7 @@ def withdraw_message(id_message, id_user):
         (lambda: msg.id_sender != id_user                , 'User not allowed to withdraw the message'       , 403),
         (lambda: msg.is_sent == False                    , 'You cannot withdraw a draft'                    , 400),
         (lambda: msg.is_arrived == True                  , 'You cannot withdraw a delivered message'        , 400),
-        # TODO: check lottery points
         (lambda: MM.get_user_lottery_points(id_user) <= 0, "You don't have enough lottery points"           , 400),
-        # TODO; send to ms user request to decrease lottery points
-        (lambda: False                                   , 'An error occurred while withdrawing the message', 500),
     ]
     for fail, message, code in analysis:
         if fail():
@@ -169,7 +166,80 @@ def withdraw_message(id_message, id_user):
     }
     return jsonify(response_object), 200
 
-# TODO: add notification
+def can_reply(id_message, id_user):
+    msg = MM.retrieve_by_id(id_message)
+    analysis = [
+        (lambda: msg is None                        , 'Message not found'                              , 404),
+        (lambda: not MM.user_can_reply(id_user, msg), 'User not allowed to reply to the message'       , 403),
+    ]
+    for fail, message, code in analysis:
+        if fail():
+            response_object = {
+                'status': 'failed',
+                'message': message,
+            }
+            return jsonify(response_object), code
+
+    response_object = {
+        'status': 'success',
+        'message': 'User can reply',
+    }
+    return jsonify(response_object), 200
+
+def forward_message(id_message, id_user):
+    msg = MM.retrieve_by_id(id_message)
+    analysis = [
+        (lambda: msg is None                          , 'Message not found'                             , 404),
+        (lambda: not MM.user_can_forward(id_user, msg), 'User not allowed to forward the message'       , 403),
+    ]
+    for fail, message, code in analysis:
+        if fail():
+            response_object = {
+                'status': 'failed',
+                'message': message,
+            }
+            return jsonify(response_object), code
+
+    response_object = {
+        'status': 'success',
+        'message': 'User can forward',
+        'obj': msg.serialize()
+    }
+    return jsonify(response_object), 200
+
+def get_replying_info(id_message, id_user):
+    message = MM.retrieve_by_id(id_message)
+
+    if (message == None):
+        response_object = {
+            'status': "failed",
+            "message":"Message not found"
+        }
+        return jsonify(response_object),404
+
+    if (MM.user_can_read(id_user,message) == False):
+        response_object = {
+            'status': "failed",
+            "message":"User not allowed to read the message"
+        }
+        return jsonify(response_object),401
+
+    message_dict = message.serialize()
+    message_dict = {
+        k:v for k,v in message_dict.items()
+        if k in ['id_sender', 'message_body', 'delivery_date']
+    }
+    users_info = MM.retrieve_users_info(
+        id_list=[message.id_sender]
+    )
+    response_object = {
+        'status': 'success',
+        'message': 'Message retrieved succesfully',
+        'obj': message_dict,
+        'users': users_info,
+    }
+    return jsonify(response_object), 200
+
 def read_message(id_message, id_user):
     '''
     Return the message to read if exists
@@ -205,11 +275,22 @@ def read_message(id_message, id_user):
         users_info = MM.retrieve_users_info(
             id_list=RM.get_recipients(message) + [message.id_sender]
         )
+        rp_msg_dict = {}
+        if message.reply_to is not None:
+            rp_msg = MM.retrieve_by_id(message.reply_to)
+            if rp_msg is not None:
+                rp_msg_dict = rp_msg.serialize()
+                rp_msg_dict = {
+                    k:v for k,v in rp_msg_dict.items()
+                    if k in ['id_sender', 'message_body', 'delivery_date']
+                }
+                
         response_object = {
             'status': 'success',
             'message': 'Message retrieved succesfully',
             'obj': message_dict,
             'users': users_info,
+            'replying_info': rp_msg_dict,
             'image': Utils.load_message_image(message),
         }
         return jsonify(response_object), 200

@@ -65,7 +65,8 @@ class Message(db.Model):
         self.to_filter = to_filter
 
     def set_reply_to(self, reply_to: int):
-        self.reply_to = reply_to
+        if reply_to is not None:
+            self.reply_to = reply_to
 
     def serialize(self):
         _dict = dict([(k, self.__getattribute__(k)) for k in self.SERIALIZE_LIST])
