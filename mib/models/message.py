@@ -2,6 +2,7 @@ from datetime import datetime
 
 from mib import db
 
+
 class Message(db.Model):
 
     ## The name of the table that we explicitly set
@@ -9,18 +10,18 @@ class Message(db.Model):
 
     # A list of fields to be serialized
     SERIALIZE_LIST = [
-        'id_message', 
-        'id_sender', 
-        'recipients',
-        'message_body',
-        'img_path',
-        'delivery_date',
-        'is_sent',
-        'is_arrived',
-        'to_filter',
-        'reply_to',
+        "id_message",
+        "id_sender",
+        "recipients",
+        "message_body",
+        "img_path",
+        "delivery_date",
+        "is_sent",
+        "is_arrived",
+        "to_filter",
+        "reply_to",
     ]
-    
+
     # id_message is the primary key that identify a message
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_sender = db.Column(db.Integer)
@@ -28,7 +29,9 @@ class Message(db.Model):
         "Recipient", back_populates="message", cascade="all, delete-orphan"
     )
     message_body = db.Column(db.Unicode(256))
-    img_path = db.Column( db.Unicode(128))  # we store the path of the image in the web server
+    img_path = db.Column(
+        db.Unicode(128)
+    )  # we store the path of the image in the web server
     delivery_date = db.Column(db.DateTime)
     # boolean variables that describe the state of the message
     is_sent = db.Column(db.Boolean, default=False)
@@ -71,8 +74,8 @@ class Message(db.Model):
     def serialize(self):
         _dict = dict([(k, self.__getattribute__(k)) for k in self.SERIALIZE_LIST])
         if self.delivery_date is not None:
-            _dict['delivery_date'] = self.delivery_date.strftime('%H:%M %d/%m/%Y')
+            _dict["delivery_date"] = self.delivery_date.strftime("%H:%M %d/%m/%Y")
         else:
-            del _dict['delivery_date']
-        _dict['recipients'] = [ rcp.id_recipient for rcp in self.recipients ]
+            del _dict["delivery_date"]
+        _dict["recipients"] = [rcp.id_recipient for rcp in self.recipients]
         return _dict

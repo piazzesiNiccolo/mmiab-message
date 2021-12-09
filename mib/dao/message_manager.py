@@ -16,20 +16,20 @@ from sqlalchemy.orm import Query
 
 from flask import current_app as app
 
-class MessageManager(Manager):
 
+class MessageManager(Manager):
     @classmethod
     def users_endpoint(cls):
-        return app.config['USERS_MS_URL']
-    
+        return app.config["USERS_MS_URL"]
+
     @classmethod
     def requests_timeout_seconds(cls):
-        return app.config['REQUESTS_TIMEOUT_SECONDS']
+        return app.config["REQUESTS_TIMEOUT_SECONDS"]
 
     @classmethod
     def create_message(cls, message: Message):
         Manager.create(message=message)
-    
+
     @classmethod
     def update_message(cls, message: Message):
         Manager.update(message=message)
@@ -55,7 +55,7 @@ class MessageManager(Manager):
         )
         return mess
 
-    #TODO add some checks about recipient
+    # TODO add some checks about recipient
     @classmethod
     def user_can_read(cls, user_id: int, message: Message) -> bool:
         recipients = [rcp.id_recipient for rcp in message.recipients]
@@ -75,9 +75,8 @@ class MessageManager(Manager):
     @classmethod
     def user_can_forward(cls, user_id: int, message: Message) -> bool:
         recipients = [rcp.id_recipient for rcp in message.recipients]
-        return (
-            (message.is_arrived == True and user_id in recipients) or
-            (message.is_sent == True and user_id == message.id_sender)
+        return (message.is_arrived == True and user_id in recipients) or (
+            message.is_sent == True and user_id == message.id_sender
         )
 
     @classmethod
@@ -85,7 +84,7 @@ class MessageManager(Manager):
         user_info = cls.retrieve_users_info(id_list=[user_id])
         info = user_info.get(user_id, None)
         if info is not None:
-            return info.get('lottery_points', 0)
+            return info.get("lottery_points", 0)
         return 0
 
     @classmethod
@@ -103,22 +102,24 @@ class MessageManager(Manager):
     def filter_query_monthly(cls, query: Query, month_dt: datetime) -> Query:
         if month_dt is not None:
             month_fst = datetime(month_dt.year, month_dt.month, 1)
-            next_month_fst = month_fst + timedelta(days=calendar.monthrange(month_dt.year, month_dt.month)[1])
+            next_month_fst = month_fst + timedelta(
+                days=calendar.monthrange(month_dt.year, month_dt.month)[1]
+            )
             query = query.filter(
                 Message.delivery_date >= month_fst,
                 Message.delivery_date < next_month_fst,
             )
         return query
 
-
     @classmethod
-    def get_sent_messages(cls, id: int, day_dt: datetime = None, month_dt: datetime = None):
+    def get_sent_messages(
+        cls, id: int, day_dt: datetime = None, month_dt: datetime = None
+    ):
         """
         Returns the list of sent messages by a specific user.
         """
-        query = (
-            db.session.query(Message)
-            .filter(Message.id_sender == id, Message.is_sent == True)
+        query = db.session.query(Message).filter(
+            Message.id_sender == id, Message.is_sent == True
         )
         if day_dt is not None:
             query = cls.filter_query_daily(query, day_dt)
@@ -128,19 +129,21 @@ class MessageManager(Manager):
         return query.all()
 
     @classmethod
-    def get_user_content_filter(cls,id_usr):
+    def get_user_content_filter(cls, id_usr):
         try:
-            url = "%s/user/filter_value/%s" % (cls.users_endpoint(),str(id_usr))
+            url = "%s/user/filter_value/%s" % (cls.users_endpoint(), str(id_usr))
             response = requests.get(url, timeout=cls.requests_timeout_seconds())
             code = response.status_code
-            obj = response.json().get('toggle', False)
+            obj = response.json().get("toggle", False)
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             return 500, False
 
-        return code,obj
+        return code, obj
 
     @classmethod
-    def get_received_messages(cls, id: int, day_dt: datetime = None, month_dt: datetime = None):
+    def get_received_messages(
+        cls, id: int, day_dt: datetime = None, month_dt: datetime = None
+    ):
         """
         Returns the list of received messages by a specific user.
         """
@@ -149,37 +152,33 @@ class MessageManager(Manager):
             .filter(
                 Message.is_sent == True,
                 Message.is_arrived == True,
-            ).filter(
+            )
+            .filter(
                 Message.recipients.any(
                     and_(Recipient.id_recipient == id, Recipient.read_deleted == False)
                 )
             )
         )
         _, toggle = MessageManager.get_user_content_filter(id)
-        if ( toggle == True):
+        if toggle == True:
             query = query.filter(Message.to_filter == False)
-        
+
         if day_dt is not None:
             query = cls.filter_query_daily(query, day_dt=day_dt)
         elif month_dt is not None:
             query = cls.filter_query_monthly(query, month_dt=month_dt)
 
-        #TODO check it
+        # TODO check it
         # Contains for each message a flag indicating id the specified user has already opened it
         opened_dict = {
             m.id_message: next(
-                (
-                    rcp.has_opened
-                    for rcp in m.recipients
-                    if rcp.id_recipient == id
-                ),
+                (rcp.has_opened for rcp in m.recipients if rcp.id_recipient == id),
                 True,
             )
             for m in query
         }
 
         return query.all(), opened_dict
-
 
     def delete_draft(message: Message) -> bool:
         if message.is_arrived == False and message.is_sent == False:
@@ -199,13 +198,15 @@ class MessageManager(Manager):
     @classmethod
     def withdraw_message(cls, message: Message):
         message.is_sent = False
-        EventPublishers.publish_withdraw_points({"users":[
-            {"id":message.id_sender,"points":-1}
-        ]})
+        EventPublishers.publish_withdraw_points(
+            {"users": [{"id": message.id_sender, "points": -1}]}
+        )
         db.session.commit()
 
     @classmethod
-    def retrieve_users_info(cls, id_list: List[int] = [], deep_list: List[List[int]] = []) -> dict:
+    def retrieve_users_info(
+        cls, id_list: List[int] = [], deep_list: List[List[int]] = []
+    ) -> dict:
 
         # The following single line of code is equal to:
         #
@@ -222,16 +223,16 @@ class MessageManager(Manager):
         if len(id_list) == 0:
             return {}
 
-        id_list_str = ','.join([str(id) for id in id_list])
+        id_list_str = ",".join([str(id) for id in id_list])
         endpoint = f"{cls.users_endpoint()}/users/display_info?ids={id_list_str}"
         try:
             response = requests.get(endpoint, timeout=cls.requests_timeout_seconds())
             if response.status_code == 200:
-                recipients = response.json()['users']
+                recipients = response.json()["users"]
                 formatted_rcp = {}
                 for rcp in recipients:
-                    _id = rcp['id']
-                    del rcp['id']
+                    _id = rcp["id"]
+                    del rcp["id"]
                     formatted_rcp[_id] = rcp
                 return formatted_rcp
             else:
@@ -267,5 +268,3 @@ class MessageManager(Manager):
             }
             for m in messages_arrived
         ]
-
-

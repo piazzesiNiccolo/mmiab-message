@@ -6,7 +6,6 @@ from typing import List
 
 
 class RecipientManager:
-
     @classmethod
     def retrieve_recipient_by_id(cls, message: Message, id_recipient: int) -> Recipient:
         if message is None:
@@ -14,7 +13,7 @@ class RecipientManager:
 
         return next(
             (rcp for rcp in message.recipients if rcp.id_recipient == id_recipient),
-            None
+            None,
         )
 
     @classmethod
@@ -22,7 +21,7 @@ class RecipientManager:
         if message is None:
             return []
 
-        return [ recipient.id_recipient for recipient in message.recipients ]
+        return [recipient.id_recipient for recipient in message.recipients]
 
     @classmethod
     def is_recipient(cls, message: Message, id: int) -> bool:
@@ -53,11 +52,7 @@ class RecipientManager:
         if message is None:
             return False
 
-        
-        return (
-            message.is_arrived == True and
-            cls.is_recipient(message, id_recipient)
-        )
+        return message.is_arrived == True and cls.is_recipient(message, id_recipient)
 
     @classmethod
     def delete_read_message(cls, message: Message, id_recipient: int) -> bool:
@@ -75,10 +70,7 @@ class RecipientManager:
 
     @classmethod
     def set_recipients(
-        cls, 
-        message: Message, 
-        recipients: List[int], 
-        replying: bool = False
+        cls, message: Message, recipients: List[int], replying: bool = False
     ) -> None:
         # this is done this way to keep the order of recipients
         _recipients = []
@@ -99,7 +91,3 @@ class RecipientManager:
             Recipient(id_recipient=user_id) for user_id in _recipients
         ]
         db.session.commit()
-
-
-
-
