@@ -1,5 +1,6 @@
 from mib import db
 
+
 class Recipient(db.Model):
     """Representation of Recipient model."""
 
@@ -25,6 +26,3 @@ class Recipient(db.Model):
 
     def set_read_deleted(self, read_deleted):
         self.read_deleted = read_deleted
-
-
-

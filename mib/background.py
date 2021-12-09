@@ -2,12 +2,13 @@ import os
 import logging
 import random
 import requests
-import config # Needed for create_app
+import config  # Needed for create_app
 from celery import Celery
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
 from mib.dao.message_manager import MessageManager as MM
 from mib.events.publishers import EventPublishers
+
 _APP = None
 
 # BACKEND = "redis://localhost:6379"
@@ -43,29 +44,27 @@ celery.conf.beat_schedule = {
     "arrived_messages": {"task": __name__ + ".arrived_messages", "schedule": 60.0},
 }
 
+
 @celery.task
 def arrived_messages():  # pragma: nocover
     return _arrived_messages()
 
+
 def _arrived_messages():
     message_list = MM.get_new_arrived_messages()
-    payload = {
-        "notifications":[]
-    }
+    payload = {"notifications": []}
     for message in message_list:
         for recipient in message["recipients"]:
-            payload["notifications"].append({
-                "id_message":message["id"],
-                "id_user":recipient,
-                "for_recipient":True,
-                "for_sender":False,
-                "for_lottery":False,
-                "from_recipient":None
-            })
+            payload["notifications"].append(
+                {
+                    "id_message": message["id"],
+                    "id_user": recipient,
+                    "for_recipient": True,
+                    "for_sender": False,
+                    "for_lottery": False,
+                    "from_recipient": None,
+                }
+            )
     EventPublishers.publish_add_notify(payload)
-    
+
     return payload
-
-
-
-

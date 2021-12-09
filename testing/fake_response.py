@@ -1,4 +1,3 @@
-
 class MockResponse:
     def __init__(self, code=200, json={}):
         self.status_code = code
@@ -6,4 +5,3 @@ class MockResponse:
 
     def json(self):
         return self.json_data
-

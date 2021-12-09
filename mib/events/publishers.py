@@ -3,7 +3,10 @@ from typing import Dict
 
 from flask import current_app
 
-from mib.events.channels import PUBLISH_CHANNEL_WITHDRAW_POINTS, PUBLISH_CHANNEL_ADD_MESSAGE_NOTIFICATIONS
+from mib.events.channels import (
+    PUBLISH_CHANNEL_WITHDRAW_POINTS,
+    PUBLISH_CHANNEL_ADD_MESSAGE_NOTIFICATIONS,
+)
 from mib.events.redis_setup import get_redis
 
 
@@ -16,6 +19,7 @@ class EventPublishers:
             return get_redis(current_app).publish(
                 PUBLISH_CHANNEL_WITHDRAW_POINTS, json.dumps(msg)
             )
+
     @classmethod
     def publish_add_notify(cls, msg: Dict):
         if "notifications" not in msg:

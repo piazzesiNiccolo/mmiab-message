@@ -1,7 +1,7 @@
 from mib import db
 
 
-class Manager(object):#pragma: no cover
+class Manager(object):  # pragma: no cover
 
     db_session = db.session
 
@@ -9,7 +9,7 @@ class Manager(object):#pragma: no cover
     def check_none(**kwargs):
         for name, arg in zip(kwargs.keys(), kwargs.values()):
             if arg is None:
-                raise ValueError('You can\'t set %s argument to None' % name)
+                raise ValueError("You can't set %s argument to None" % name)
 
     @staticmethod
     def create(**kwargs):
@@ -26,7 +26,7 @@ class Manager(object):#pragma: no cover
         It should implemented by child
         :return:
         """
-        pass # pragma: no cover
+        pass  # pragma: no cover
 
     @staticmethod
     def update(**kwargs):

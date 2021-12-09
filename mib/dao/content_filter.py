@@ -2,6 +2,7 @@ import string
 import os
 from flask import current_app as app
 
+
 class ContentFilter:
     __UNSAFE_WORDS = []
     __alphanumeric = string.ascii_letters + string.digits
@@ -16,8 +17,7 @@ class ContentFilter:
         if len(ContentFilter.__UNSAFE_WORDS) == 0:
 
             with open(
-                os.path.join( app.config['UNSAFE_WORDS_FOLDER'], "unsafe_words.txt"),
-                "r"
+                os.path.join(app.config["UNSAFE_WORDS_FOLDER"], "unsafe_words.txt"), "r"
             ) as f:
                 lines = f.readlines()
 
@@ -54,4 +54,3 @@ class ContentFilter:
                 index = _body.find(uw, index + 1)
 
         return False
-
