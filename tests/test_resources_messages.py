@@ -288,7 +288,6 @@ class TestMessages:
         if message is not None:
             db.session.add(message)
             db.session.commit()
-            print(message.serialize())
         response = test_client.get('/message/replying_info/1/1')
         assert response.status_code == code
         if message is not None:
