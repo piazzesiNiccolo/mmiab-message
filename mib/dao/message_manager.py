@@ -61,7 +61,6 @@ class MessageManager(Manager):
         """
         Returns the list of drafted messages by a specific user.
         """
-        print('ms dao', db.session.query(Message).all())
         mess = (
             db.session.query(Message)
             .filter(
@@ -273,7 +272,6 @@ class MessageManager(Manager):
             Message.is_arrived == False,
             Message.delivery_date is not None,
         )
-        print(db.session.query(Message).all())
 
         messages_arrived = []
         for m in messages.all():

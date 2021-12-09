@@ -53,7 +53,7 @@ class RecipientManager:
         if message is None:
             return False
 
-        print(message)
+        
         return (
             message.is_arrived == True and
             cls.is_recipient(message, id_recipient)
