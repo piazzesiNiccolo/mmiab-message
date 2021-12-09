@@ -1,6 +1,7 @@
 from mib import db
 
 class Recipient(db.Model):
+    """Representation of Recipient model."""
 
     __tablename__ = "Recipient"
 

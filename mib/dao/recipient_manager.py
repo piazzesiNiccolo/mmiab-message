@@ -6,6 +6,9 @@ from typing import List
 
 
 class RecipientManager:
+    """
+    Wrapper class  for all db operations involving recipients
+    """
 
     @classmethod
     def retrieve_recipient_by_id(cls, message: Message, id_recipient: int) -> Recipient:

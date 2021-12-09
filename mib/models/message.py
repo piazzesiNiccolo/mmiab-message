@@ -3,6 +3,7 @@ from datetime import datetime
 from mib import db
 
 class Message(db.Model):
+    """Representation of Message model."""
 
     ## The name of the table that we explicitly set
     __tablename__ = "Message"

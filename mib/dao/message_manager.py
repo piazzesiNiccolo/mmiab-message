@@ -17,6 +17,9 @@ from sqlalchemy.orm import Query
 from flask import current_app as app
 
 class MessageManager(Manager):
+    """
+    Wrapper class  for all db operations involving messages
+    """
 
     @classmethod
     def users_endpoint(cls):
